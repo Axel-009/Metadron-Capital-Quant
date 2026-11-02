@@ -1,0 +1,104 @@
+from app.utils.database import DB_FOLDER, EXCLUDED_HEDGE_FUNDS_FILE, get_all_quarters, get_last_quarter_for_fund, load_hedge_funds
+import os
+import unittest
+
+
+class TestHedgeFunds(unittest.TestCase):
+    def test_all_reports_belong_to_hedge_funds_file(self):
+        """
+        Verifies that all quarterly report files correspond to a fund listed in hedge_funds.csv.
+        """
+        hedge_funds = load_hedge_funds()
+        known_fund_names = {fund['Fund'] for fund in hedge_funds}
+        all_quarters = get_all_quarters()
+
+        unexpected_files = []
+
+        for quarter in all_quarters:
+            quarter_path = os.path.join(DB_FOLDER, quarter)
+            if not os.path.isdir(quarter_path):
+                continue
+
+            for filename in os.listdir(quarter_path):
+                if filename.endswith('.csv'):
+                    fund_name_from_file = os.path.splitext(filename)[0].replace('_', ' ')
+                    if fund_name_from_file not in known_fund_names:
+                        unexpected_files.append(os.path.join(quarter_path, filename))
+
+        if unexpected_files:
+            formatted_files = "\n".join(sorted(unexpected_files))
+            error_message = (
+                f"Found {len(unexpected_files)} report files for unknown funds.\n"
+                "These files correspond to funds not listed in hedge_funds.csv. Please add them or remove the files:\n\n"
+                f"{formatted_files}"
+            )
+            self.fail(error_message)
+
+
+    def test_all_funds_have_at_least_one_report(self):
+        """
+        Verifies that every fund listed in hedge_funds.csv has at least one quarterly report file.
+        """
+        hedge_funds = load_hedge_funds()
+        funds_without_reports = []
+
+        for fund in hedge_funds:
+            fund_name = fund['Fund']
+            if get_last_quarter_for_fund(fund_name) is None:
+                funds_without_reports.append(fund_name)
+
+        if funds_without_reports:
+            formatted_funds = "\n".join(sorted(funds_without_reports))
+            error_message = (
+                f"Found {len(funds_without_reports)} funds in hedge_funds.csv with no corresponding report files in any quarter.\n"
+                "Please generate a report for them or remove them from hedge_funds.csv:\n\n"
+                f"{formatted_funds}"
+            )
+            self.fail(error_message)
+
+
+    def test_hedge_funds_are_sorted(self):
+        """
+        Verifies that hedge_funds.csv is sorted alphabetically by 'Fund',
+        ignoring the first two favorite entries (Duquesne, Renaissance).
+        """
+        hedge_funds = load_hedge_funds()
+
+        # Skip the first two funds
+        funds_to_check = [f['Fund'] for f in hedge_funds[2:]]
+        
+        # Create a sorted version (case-insensitive to match typical expectations)
+        sorted_funds = sorted(funds_to_check, key=str.casefold)
+        
+        # Check if the original list matches the sorted list
+        if funds_to_check != sorted_funds:
+            # Find the first mismatch for the error message
+            for i, (actual, expected) in enumerate(zip(funds_to_check, sorted_funds)):
+                if actual != expected:
+                    self.fail(
+                        f"hedge_funds.csv is not sorted correctly starting from the 3rd entry.\n"
+                        f"First mismatch at index {i+2}: Found '{actual}', expected '{expected}'."
+                    )
+
+
+    def test_no_duplicate_funds_in_excluded(self):
+        """
+        Verifies that no fund (by CIK) is present in both hedge_funds.csv and excluded_hedge_funds.csv.
+        """
+        hedge_funds = load_hedge_funds()
+        excluded_path = os.path.join(DB_FOLDER, EXCLUDED_HEDGE_FUNDS_FILE)
+        excluded_funds = load_hedge_funds(excluded_path)
+        
+        hedge_fund_ciks = {fund['CIK'] for fund in hedge_funds if fund['CIK']}
+        excluded_fund_ciks = {fund['CIK'] for fund in excluded_funds if fund['CIK']}
+        
+        duplicate_ciks = hedge_fund_ciks.intersection(excluded_fund_ciks)
+        
+        if duplicate_ciks:
+            # Map CIKs back to Fund names for a better error message
+            hedge_map = {fund['CIK']: fund['Fund'] for fund in hedge_funds}
+            excluded_map = {fund['CIK']: fund['Fund'] for fund in excluded_funds}
+            
+            error_details = [f"  - CIK {cik}: '{hedge_map[cik]}' (mismatch in excluded: '{excluded_map[cik]}')" for cik in sorted(duplicate_ciks)]
+            error_message = f"Found {len(duplicate_ciks)} CIKs present in both hedge_funds.csv and excluded_hedge_funds.csv:\n\n" + "\n".join(error_details)
+            self.fail(error_message)

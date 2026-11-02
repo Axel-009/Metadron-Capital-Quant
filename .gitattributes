@@ -1,0 +1,2 @@
+# Standalone repo: store PDFs as normal files (no Git LFS dependency)
+*.pdf -filter -diff -merge binary

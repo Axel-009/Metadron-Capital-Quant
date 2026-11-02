@@ -1,0 +1,36 @@
+# Metadron agent roster — every agent is PROPOSE-ONLY (design rule 4): it writes inputs or reports,
+# never orders. Hard caps change only with the owner's approval (design rule 3).
+# Hosting: GitHub Actions (.github/workflows). Model: claude-opus-5-5 via agents/llm.py.
+agents:
+  macro-analyst:
+    script: agents/macro_agent.py
+    schedule: weekdays 12:20 UTC (pre-market)
+    reads: [FRED, news (web search), agents/market_reasoning.md]
+    writes: [metadron/macro_inputs.json, metadron/scenarios.json]
+    secrets: [FRED_API_KEY, ANTHROPIC_API_KEY, QC_USER_ID, QC_API_TOKEN, QC_ORG_ID]
+  events-analyst:
+    script: agents/events_agent.py
+    schedule: weekdays 12:20 UTC (pre-market)
+    reads: [SEC EDGAR 8-K / 10-Q / 10-K, news (web search), metadron/state.json, metadron/universe_scores.json]
+    writes: [metadron/events.json]
+    effect: earnings dates → tail hedges + straddles; 8-K / legal flags → fundamentals-gate penalty; escalation flag
+    secrets: [SEC_USER_AGENT, ANTHROPIC_API_KEY, QC_USER_ID, QC_API_TOKEN, QC_ORG_ID]
+  forecaster:
+    script: agents/kronos_agent.py
+    schedule: Saturdays 10:00 UTC (CPU)
+    writes: [metadron/kronos.json]
+    effect: per-name alpha + forward Rm, weighted by the model scorecard (starts at 0)
+  risk-officer:
+    script: agents/risk_officer.py
+    schedule: weekdays 21:40 UTC (post-close)
+    reads: [metadron/state.json, IBKR Flex positions]
+    writes: [vault/Risk/YYYY-MM-DD.md]
+    alerts: failed GitHub job → e-mail to the owner
+    secrets: [IBKR_FLEX_TOKEN, IBKR_FLEX_QUERY_ID, QC_USER_ID, QC_API_TOKEN, QC_ORG_ID]
+  journalist:
+    script: agents/vault_sync.py
+    schedule: weekdays 21:40 UTC (post-close)
+    writes: [vault/Daily, vault/Positions, vault/Universe.md, vault/Market.md]
+scorecard:
+  models: in-algorithm (alpha.Scorecard) — rank IC per model; IC ≤ 0 for 4 periods → weight 0
+  agents: review monthly in vault (accuracy of events dates, scenario hit rate); demote = disable the job

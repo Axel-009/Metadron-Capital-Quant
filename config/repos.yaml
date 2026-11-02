@@ -1,0 +1,337 @@
+# Metadron Capital — Repository Orchestration Map
+# Each repo serves a specific role in the investment platform architecture
+#
+# LAYER 1: DATA INGESTION & MARKET INTELLIGENCE
+# LAYER 2: SIGNAL PROCESSING & FEATURE ENGINEERING
+# LAYER 3: ML/AI MODELS & PREDICTION
+# LAYER 4: PORTFOLIO CONSTRUCTION & RISK MANAGEMENT
+# LAYER 5: EXECUTION & SERVING INFRASTRUCTURE
+# LAYER 6: AGENT ORCHESTRATION & DECISION INTELLIGENCE
+
+repos:
+
+  # ─── LAYER 1: DATA INGESTION & MARKET INTELLIGENCE ───────────────────
+  financial_data:
+    path: ../Financial-Data
+    role: "Market Data Pipeline"
+    layer: 1
+    description: "Core financial data acquisition — equities, fixed income, macro indicators"
+    capabilities:
+      - historical_price_data
+      - fundamental_data
+      - real_time_feeds
+    outputs: [raw_market_data, corporate_fundamentals]
+
+  open_bb:
+    path: ../open-bb
+    role: "Investment Research Terminal"
+    layer: 1
+    description: "OpenBB-based research terminal — broad market data, screening, alternative data"
+    capabilities:
+      - equity_screening
+      - macro_economic_data
+      - alternative_data
+      - sector_analysis
+    outputs: [screened_universe, macro_indicators, alt_data_signals]
+
+  hedgefund_tracker:
+    path: ../hedgefund-tracker
+    role: "Institutional Flow Intelligence"
+    layer: 1
+    description: "Track hedge fund 13F filings, institutional positions, smart money flows"
+    capabilities:
+      - sec_13f_parsing
+      - institutional_position_tracking
+      - smart_money_flow_detection
+    outputs: [institutional_flows, position_changes, conviction_signals]
+
+  # ─── LAYER 2: SIGNAL PROCESSING & FEATURE ENGINEERING ────────────────
+  mav_analysis:
+    path: ../Mav-Analysis
+    role: "Technical Analysis Engine"
+    layer: 2
+    description: "Maverick MCP — professional-grade technical analysis, indicators, backtesting"
+    capabilities:
+      - technical_indicators
+      - pattern_recognition
+      - backtesting_engine
+      - mcp_server
+    outputs: [technical_signals, pattern_alerts, backtest_results]
+
+  quant_trading:
+    path: ../quant-trading
+    role: "Quantitative Strategy Library"
+    layer: 2
+    description: "Proven quant strategies — Bollinger Bands, London Breakout, Dual Thrust, etc."
+    capabilities:
+      - strategy_backtesting
+      - signal_generation
+      - strategy_composition
+    outputs: [strategy_signals, performance_metrics]
+
+  stock_chain:
+    path: ../stock-chain
+    role: "Time-Series Chain Analysis"
+    layer: 2
+    description: "Stock chain analytics — price-volume relationships, order flow analysis"
+    capabilities:
+      - chain_analysis
+      - flow_decomposition
+      - regime_detection
+    outputs: [chain_signals, regime_labels, flow_metrics]
+
+  cta_code:
+    path: ../CTA-code
+    role: "CTA/Trend-Following Signals"
+    layer: 2
+    description: "Commodity Trading Advisor strategies — trend following, momentum, mean reversion"
+    capabilities:
+      - trend_following
+      - momentum_signals
+      - mean_reversion
+      - cross_asset_signals
+    outputs: [trend_signals, momentum_scores, reversion_alerts]
+
+  # ─── LAYER 3: ML/AI MODELS & PREDICTION ─────────────────────────────
+  qlib:
+    path: ../QLIB
+    role: "Quantitative ML Framework"
+    layer: 3
+    description: "Microsoft Qlib — end-to-end quantitative investment ML pipeline"
+    capabilities:
+      - alpha_factor_mining
+      - model_training
+      - portfolio_optimization
+      - data_processing_pipeline
+    outputs: [alpha_predictions, factor_scores, model_forecasts]
+
+  stock_prediction:
+    path: ../Stock-techincal-prediction-model
+    role: "Price Prediction Models"
+    layer: 3
+    description: "Technical prediction models — LSTM, CNN, ensemble methods for price forecasting"
+    capabilities:
+      - lstm_prediction
+      - cnn_pattern_detection
+      - ensemble_forecasting
+    outputs: [price_forecasts, direction_probabilities, confidence_scores]
+
+  ml_macro_market:
+    path: ../ML-Macro-Market
+    role: "Macro-Market ML Bridge"
+    layer: 3
+    description: "ML models bridging macroeconomic indicators to market regime classification"
+    capabilities:
+      - regime_classification
+      - macro_factor_modeling
+      - business_cycle_detection
+    outputs: [regime_probabilities, macro_factor_exposures, cycle_phase]
+
+  ai_newton:
+    path: ../AI-Newton
+    role: "Physics-Inspired Financial Models"
+    layer: 3
+    description: "AI-Newton — applying physics/mathematical principles to financial modeling"
+    capabilities:
+      - differential_equation_models
+      - energy_based_market_models
+      - chaos_theory_analysis
+    outputs: [dynamic_system_forecasts, stability_metrics, phase_transitions]
+
+  # ─── LAYER 4: PORTFOLIO CONSTRUCTION & RISK MANAGEMENT ──────────────
+  ai_hedgefund:
+    path: ../ai-hedgefund
+    role: "AI Hedge Fund Core"
+    layer: 4
+    description: "Multi-agent AI hedge fund — agent-based portfolio construction and trading decisions"
+    capabilities:
+      - multi_agent_analysis
+      - portfolio_construction
+      - risk_management
+      - trade_execution_signals
+    outputs: [portfolio_weights, trade_signals, risk_metrics]
+
+  financial_distress:
+    path: ../financial-distressed-repo
+    role: "Credit Risk / Distress Detection"
+    layer: 4
+    description: "Financial distress prediction — Altman Z-Score, Ohlson O-Score, ML-enhanced"
+    capabilities:
+      - distress_prediction
+      - bankruptcy_probability
+      - credit_risk_scoring
+    outputs: [distress_scores, risk_flags, exclusion_lists]
+
+  sophisticated_distress:
+    path: ../sophisticated-distress-analysis
+    role: "Advanced Distress Analytics"
+    layer: 4
+    description: "Sophisticated multi-factor distress analysis — deep financial health scoring"
+    capabilities:
+      - multi_factor_distress
+      - structural_model_analysis
+      - recovery_rate_estimation
+    outputs: [advanced_distress_metrics, structural_risk_scores]
+
+  # ─── LAYER 5: EXECUTION & SERVING INFRASTRUCTURE ────────────────────
+  kserve:
+    path: ../Kserve
+    role: "Model Serving Platform"
+    layer: 5
+    description: "KServe — scalable ML model serving for real-time inference"
+    capabilities:
+      - model_deployment
+      - auto_scaling
+      - ab_testing
+      - canary_deployment
+    outputs: [inference_endpoints, model_metrics]
+
+  nividia_dl:
+    path: ../nividia-repo
+    role: "GPU-Accelerated Deep Learning"
+    layer: 5
+    description: "NVIDIA Deep Learning Examples — optimized GPU training/inference pipelines"
+    capabilities:
+      - gpu_optimized_training
+      - mixed_precision
+      - distributed_training
+    outputs: [optimized_models, training_pipelines]
+
+  air_llm:
+    path: ../Air-LLM
+    role: "Efficient LLM Inference"
+    layer: 5
+    description: "AirLLM — memory-efficient LLM inference for on-device/edge deployment"
+    capabilities:
+      - quantized_inference
+      - memory_efficient_loading
+      - edge_deployment
+    outputs: [llm_inference_service]
+
+  # ─── LAYER 6: AGENT ORCHESTRATION & DECISION INTELLIGENCE ───────────
+  ruflo_agents:
+    path: ../Ruflo-agents
+    role: "Multi-Agent Orchestration"
+    layer: 6
+    description: "Ruflo agent framework — multi-agent coordination, task decomposition, swarm intelligence"
+    capabilities:
+      - agent_orchestration
+      - task_decomposition
+      - inter_agent_communication
+      - decision_aggregation
+    outputs: [orchestrated_decisions, agent_consensus, execution_plans]
+
+  # ─── LAYER 0: CENTRAL HUB ──────────────────────────────────────────
+  metadron_capital:
+    path: .
+    role: "Platform Orchestrator"
+    layer: 0
+    description: "Central nervous system — coordinates all layers, manages data flow, generates portfolio analytics"
+    capabilities:
+      - cross_layer_orchestration
+      - money_velocity_analysis
+      - cyclical_secular_decomposition
+      - portfolio_analytics_generation
+      - unified_api
+    outputs: [investment_decisions, portfolio_analytics, risk_reports]
+
+  # ─── ADDITIONAL REPOS ────────────────────────────────────────────────
+  mirofish:
+    path: ../MiroFish
+    role: "Social Prediction Engine"
+    layer: 6
+    description: "Agent-based social simulation — OASIS Twitter/Reddit, LLM ontology, sentiment signals"
+    capabilities:
+      - social_simulation
+      - sentiment_analysis
+      - agent_behavior_modeling
+      - narrative_regime_detection
+    outputs: [social_signals, sentiment_scores, narrative_regimes]
+
+  trade_the_event:
+    path: ../TradeTheEvent
+    role: "Event-Driven ML Reference"
+    layer: 2
+    description: "BERT-based event detection — news classification, event impact prediction"
+    capabilities:
+      - event_detection
+      - news_classification
+      - impact_prediction
+    outputs: [event_signals, news_classifications]
+
+  financial_distress_prediction:
+    path: ../FinancialDistressPrediction
+    role: "GBM Distress Prediction Reference"
+    layer: 4
+    description: "Gradient Boosted Machine bankruptcy prediction — reference for DistressedAssetEngine"
+    capabilities:
+      - bankruptcy_prediction
+      - financial_health_scoring
+    outputs: [distress_predictions, bankruptcy_probabilities]
+
+  stock_prediction_technical:
+    path: ../Stock-prediction
+    role: "Technical Price Prediction"
+    layer: 3
+    description: "Additional stock price prediction models — technical analysis, ML forecasting"
+    capabilities:
+      - price_forecasting
+      - technical_pattern_detection
+    outputs: [price_predictions, pattern_signals]
+
+  frb:
+    path: ../FRB
+    role: "Federal Reserve Bank Data"
+    layer: 1
+    description: "FRED API wrapper — M1/M2, fed rates, GDP, employment, inflation"
+    capabilities:
+      - fred_api
+      - monetary_data
+      - macro_indicators
+    outputs: [fred_series, monetary_aggregates]
+
+  equity_linked_gic_pooling:
+    path: ../EquityLinkedGICPooling
+    role: "GIC Pooling Methodology"
+    layer: 1
+    description: "Equity-linked GIC pooling — fair value tolerance, notional minimums"
+    capabilities:
+      - gic_pooling
+      - fair_value_analysis
+    outputs: [pooled_securities, gic_structures]
+
+  quant_developers_resources:
+    path: ../Quant-Developers-Resources
+    role: "Quantitative Finance Reference Library"
+    layer: 1
+    description: "Comprehensive quant development resources — AI/ML, statistics, financial engineering"
+    capabilities:
+      - reference_library
+      - strategy_templates
+      - educational_resources
+    outputs: [reference_materials, strategy_templates]
+
+  # ─── EXECUTION ARM ──────────────────────────────────────────────────
+  wondertrader:
+    path: ../wondertrader
+    role: "HFT Quantitative Trading Platform"
+    layer: 2
+    description: "WonderTrader — high-performance C++ quant framework for CTA/HFT execution strategies"
+    capabilities:
+      - hft_execution
+      - cta_strategies
+      - real_time_data
+      - backtest_engine
+    outputs: [execution_signals, hft_orders, strategy_performance]
+
+  exchange_core:
+    path: ../exchange-core
+    role: "High-Performance Exchange Engine"
+    layer: 5
+    description: "Exchange-core — ultra-low latency Java order matching engine for market arbitrage"
+    capabilities:
+      - order_matching
+      - risk_engine
+      - market_data_distribution
+      - latency_optimization
+    outputs: [matched_orders, market_data, risk_checks]

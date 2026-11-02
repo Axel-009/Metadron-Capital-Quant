@@ -1,0 +1,3853 @@
+{
+  "source": "FMP fundamental metrics (debt_to_equity, current_ratio) via OpenBB",
+  "total": 767,
+  "summary": {
+    "IG": 321,
+    "HY": 446
+  },
+  "tiers": {
+    "B": 121,
+    "F": 100,
+    "A": 144,
+    "E": 35,
+    "D": 311,
+    "C": 56
+  },
+  "ratings": {
+    "A": {
+      "debt_equity": 0.5,
+      "current_ratio": 1.96,
+      "tier": "B"
+    },
+    "AAL": {
+      "debt_equity": 999,
+      "current_ratio": 0.5,
+      "tier": "F"
+    },
+    "AAON": {
+      "debt_equity": 0.48,
+      "current_ratio": 2.63,
+      "tier": "A"
+    },
+    "AAP": {
+      "debt_equity": 2.38,
+      "current_ratio": 1.75,
+      "tier": "E"
+    },
+    "AAPL": {
+      "debt_equity": 1.52,
+      "current_ratio": 0.89,
+      "tier": "D"
+    },
+    "AAT": {
+      "debt_equity": 1.48,
+      "current_ratio": 2.04,
+      "tier": "D"
+    },
+    "ABBV": {
+      "debt_equity": 999,
+      "current_ratio": 0.67,
+      "tier": "F"
+    },
+    "ABCB": {
+      "debt_equity": 0.18,
+      "current_ratio": 0.62,
+      "tier": "D"
+    },
+    "ABG": {
+      "debt_equity": 1.63,
+      "current_ratio": 0.95,
+      "tier": "D"
+    },
+    "ABM": {
+      "debt_equity": 0.95,
+      "current_ratio": 1.48,
+      "tier": "C"
+    },
+    "ABNB": {
+      "debt_equity": 0.25,
+      "current_ratio": 1.38,
+      "tier": "C"
+    },
+    "ABT": {
+      "debt_equity": 0.29,
+      "current_ratio": 1.58,
+      "tier": "B"
+    },
+    "ACB": {
+      "debt_equity": 0.18,
+      "current_ratio": 4.31,
+      "tier": "A"
+    },
+    "ACHC": {
+      "debt_equity": 1.36,
+      "current_ratio": 1.55,
+      "tier": "D"
+    },
+    "ACHR": {
+      "debt_equity": 0.02,
+      "current_ratio": 19.89,
+      "tier": "A"
+    },
+    "ACIW": {
+      "debt_equity": 0.57,
+      "current_ratio": 1.54,
+      "tier": "B"
+    },
+    "ACN": {
+      "debt_equity": 0.26,
+      "current_ratio": 1.42,
+      "tier": "C"
+    },
+    "ADBE": {
+      "debt_equity": 0.57,
+      "current_ratio": 1.0,
+      "tier": "D"
+    },
+    "ADI": {
+      "debt_equity": 0.26,
+      "current_ratio": 2.19,
+      "tier": "A"
+    },
+    "ADM": {
+      "debt_equity": 0.37,
+      "current_ratio": 11.2,
+      "tier": "A"
+    },
+    "ADP": {
+      "debt_equity": 1.46,
+      "current_ratio": 1.05,
+      "tier": "D"
+    },
+    "AEO": {
+      "debt_equity": 1.02,
+      "current_ratio": 1.52,
+      "tier": "D"
+    },
+    "AEP": {
+      "debt_equity": 1.61,
+      "current_ratio": 0.45,
+      "tier": "D"
+    },
+    "AES": {
+      "debt_equity": 4.4,
+      "current_ratio": 0.77,
+      "tier": "F"
+    },
+    "AFL": {
+      "debt_equity": 0.29,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "AFRM": {
+      "debt_equity": 2.56,
+      "current_ratio": 54.19,
+      "tier": "E"
+    },
+    "AGCO": {
+      "debt_equity": 0.63,
+      "current_ratio": 1.39,
+      "tier": "C"
+    },
+    "AGO": {
+      "debt_equity": 0.3,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "AI": {
+      "debt_equity": 0.01,
+      "current_ratio": 6.86,
+      "tier": "A"
+    },
+    "AIG": {
+      "debt_equity": 0.22,
+      "current_ratio": 0.85,
+      "tier": "D"
+    },
+    "AIMC": {
+      "debt_equity": 0.54,
+      "current_ratio": 2.22,
+      "tier": "B"
+    },
+    "AIT": {
+      "debt_equity": 0.31,
+      "current_ratio": 3.32,
+      "tier": "A"
+    },
+    "AIZ": {
+      "debt_equity": 0.38,
+      "current_ratio": 0.55,
+      "tier": "D"
+    },
+    "AJG": {
+      "debt_equity": 0.6,
+      "current_ratio": 1.06,
+      "tier": "D"
+    },
+    "AKAM": {
+      "debt_equity": 1.39,
+      "current_ratio": 2.29,
+      "tier": "D"
+    },
+    "AKR": {
+      "debt_equity": 0.86,
+      "current_ratio": 1.24,
+      "tier": "C"
+    },
+    "ALB": {
+      "debt_equity": 0.35,
+      "current_ratio": 2.23,
+      "tier": "A"
+    },
+    "ALEX": {
+      "debt_equity": 0.51,
+      "current_ratio": 1.01,
+      "tier": "D"
+    },
+    "ALGN": {
+      "debt_equity": 0.03,
+      "current_ratio": 1.36,
+      "tier": "C"
+    },
+    "ALK": {
+      "debt_equity": 1.67,
+      "current_ratio": 0.5,
+      "tier": "D"
+    },
+    "ALKT": {
+      "debt_equity": 0.98,
+      "current_ratio": 2.09,
+      "tier": "B"
+    },
+    "ALL": {
+      "debt_equity": 0.24,
+      "current_ratio": 0.37,
+      "tier": "D"
+    },
+    "ALLY": {
+      "debt_equity": 1.4,
+      "current_ratio": 0.9,
+      "tier": "D"
+    },
+    "ALNY": {
+      "debt_equity": 1.62,
+      "current_ratio": 2.76,
+      "tier": "D"
+    },
+    "ALRM": {
+      "debt_equity": 1.34,
+      "current_ratio": 1.92,
+      "tier": "D"
+    },
+    "AMAT": {
+      "debt_equity": 0.35,
+      "current_ratio": 2.61,
+      "tier": "A"
+    },
+    "AMCR": {
+      "debt_equity": 1.28,
+      "current_ratio": 1.21,
+      "tier": "D"
+    },
+    "AMD": {
+      "debt_equity": 0.07,
+      "current_ratio": 2.85,
+      "tier": "A"
+    },
+    "AME": {
+      "debt_equity": 0.21,
+      "current_ratio": 1.06,
+      "tier": "D"
+    },
+    "AMED": {
+      "debt_equity": 0.41,
+      "current_ratio": 1.23,
+      "tier": "C"
+    },
+    "AMGN": {
+      "debt_equity": 6.31,
+      "current_ratio": 1.14,
+      "tier": "F"
+    },
+    "AMSF": {
+      "debt_equity": 0.0,
+      "current_ratio": 0.32,
+      "tier": "D"
+    },
+    "AMT": {
+      "debt_equity": 12.31,
+      "current_ratio": 0.63,
+      "tier": "F"
+    },
+    "AMZN": {
+      "debt_equity": 0.37,
+      "current_ratio": 1.05,
+      "tier": "D"
+    },
+    "ANF": {
+      "debt_equity": 0.83,
+      "current_ratio": 1.49,
+      "tier": "C"
+    },
+    "ANGO": {
+      "debt_equity": 0.0,
+      "current_ratio": 2.21,
+      "tier": "A"
+    },
+    "ANSS": {
+      "debt_equity": 0.14,
+      "current_ratio": 3.01,
+      "tier": "A"
+    },
+    "AON": {
+      "debt_equity": 1.77,
+      "current_ratio": 1.11,
+      "tier": "D"
+    },
+    "APA": {
+      "debt_equity": 0.79,
+      "current_ratio": 0.82,
+      "tier": "D"
+    },
+    "APD": {
+      "debt_equity": 1.23,
+      "current_ratio": 1.38,
+      "tier": "D"
+    },
+    "APG": {
+      "debt_equity": 0.96,
+      "current_ratio": 1.5,
+      "tier": "B"
+    },
+    "APLE": {
+      "debt_equity": 0.56,
+      "current_ratio": 0.27,
+      "tier": "D"
+    },
+    "APTV": {
+      "debt_equity": 0.88,
+      "current_ratio": 1.74,
+      "tier": "B"
+    },
+    "ARCB": {
+      "debt_equity": 0.52,
+      "current_ratio": 0.95,
+      "tier": "D"
+    },
+    "ARE": {
+      "debt_equity": 0.82,
+      "current_ratio": 0.43,
+      "tier": "D"
+    },
+    "ARGX": {
+      "debt_equity": 0.01,
+      "current_ratio": 5.23,
+      "tier": "A"
+    },
+    "ARM": {
+      "debt_equity": 0.05,
+      "current_ratio": 5.2,
+      "tier": "A"
+    },
+    "ARMK": {
+      "debt_equity": 1.82,
+      "current_ratio": 0.99,
+      "tier": "D"
+    },
+    "AROC": {
+      "debt_equity": 1.62,
+      "current_ratio": 1.54,
+      "tier": "D"
+    },
+    "ASB": {
+      "debt_equity": 0.84,
+      "current_ratio": 0.3,
+      "tier": "D"
+    },
+    "ASGN": {
+      "debt_equity": 0.65,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "ASML": {
+      "debt_equity": 0.14,
+      "current_ratio": 1.26,
+      "tier": "C"
+    },
+    "ASTS": {
+      "debt_equity": 1.22,
+      "current_ratio": 16.35,
+      "tier": "D"
+    },
+    "ATEC": {
+      "debt_equity": 17.21,
+      "current_ratio": 2.06,
+      "tier": "F"
+    },
+    "ATEN": {
+      "debt_equity": 1.05,
+      "current_ratio": 3.56,
+      "tier": "D"
+    },
+    "ATGE": {
+      "debt_equity": 0.54,
+      "current_ratio": 0.82,
+      "tier": "D"
+    },
+    "ATI": {
+      "debt_equity": 1.08,
+      "current_ratio": 2.66,
+      "tier": "D"
+    },
+    "ATO": {
+      "debt_equity": 0.69,
+      "current_ratio": 0.67,
+      "tier": "D"
+    },
+    "ATRC": {
+      "debt_equity": 0.18,
+      "current_ratio": 3.96,
+      "tier": "A"
+    },
+    "AVA": {
+      "debt_equity": 1.25,
+      "current_ratio": 0.83,
+      "tier": "D"
+    },
+    "AVB": {
+      "debt_equity": 0.8,
+      "current_ratio": 0.25,
+      "tier": "D"
+    },
+    "AVGO": {
+      "debt_equity": 0.8,
+      "current_ratio": 1.71,
+      "tier": "B"
+    },
+    "AVY": {
+      "debt_equity": 1.66,
+      "current_ratio": 1.13,
+      "tier": "D"
+    },
+    "AWI": {
+      "debt_equity": 0.59,
+      "current_ratio": 1.46,
+      "tier": "C"
+    },
+    "AWK": {
+      "debt_equity": 1.47,
+      "current_ratio": 0.46,
+      "tier": "D"
+    },
+    "AX": {
+      "debt_equity": 0.14,
+      "current_ratio": 0.11,
+      "tier": "D"
+    },
+    "AXON": {
+      "debt_equity": 0.59,
+      "current_ratio": 2.53,
+      "tier": "B"
+    },
+    "AXP": {
+      "debt_equity": 1.73,
+      "current_ratio": 0.28,
+      "tier": "D"
+    },
+    "AXTA": {
+      "debt_equity": 1.45,
+      "current_ratio": 2.06,
+      "tier": "D"
+    },
+    "AZEK": {
+      "debt_equity": 0.33,
+      "current_ratio": 2.17,
+      "tier": "A"
+    },
+    "AZN": {
+      "debt_equity": 0.61,
+      "current_ratio": 0.94,
+      "tier": "D"
+    },
+    "AZO": {
+      "debt_equity": 999,
+      "current_ratio": 0.88,
+      "tier": "F"
+    },
+    "AZPN": {
+      "debt_equity": 0.01,
+      "current_ratio": 2.6,
+      "tier": "A"
+    },
+    "AZTA": {
+      "debt_equity": 0.06,
+      "current_ratio": 2.98,
+      "tier": "A"
+    },
+    "AZZ": {
+      "debt_equity": 0.84,
+      "current_ratio": 1.7,
+      "tier": "B"
+    },
+    "BA": {
+      "debt_equity": 9.98,
+      "current_ratio": 1.19,
+      "tier": "F"
+    },
+    "BABA": {
+      "debt_equity": 0.25,
+      "current_ratio": 1.54,
+      "tier": "B"
+    },
+    "BAC": {
+      "debt_equity": 1.21,
+      "current_ratio": 0.42,
+      "tier": "D"
+    },
+    "BALL": {
+      "debt_equity": 1.29,
+      "current_ratio": 1.11,
+      "tier": "D"
+    },
+    "BANF": {
+      "debt_equity": 0.07,
+      "current_ratio": 20.32,
+      "tier": "A"
+    },
+    "BAX": {
+      "debt_equity": 1.63,
+      "current_ratio": 2.31,
+      "tier": "D"
+    },
+    "BBY": {
+      "debt_equity": 1.39,
+      "current_ratio": 1.11,
+      "tier": "D"
+    },
+    "BC": {
+      "debt_equity": 1.49,
+      "current_ratio": 1.44,
+      "tier": "D"
+    },
+    "BCC": {
+      "debt_equity": 0.25,
+      "current_ratio": 3.36,
+      "tier": "A"
+    },
+    "BCPC": {
+      "debt_equity": 0.15,
+      "current_ratio": 2.07,
+      "tier": "A"
+    },
+    "BCS": {
+      "debt_equity": 2.2,
+      "current_ratio": 0.58,
+      "tier": "E"
+    },
+    "BDX": {
+      "debt_equity": 0.76,
+      "current_ratio": 1.11,
+      "tier": "D"
+    },
+    "BE": {
+      "debt_equity": 3.89,
+      "current_ratio": 5.98,
+      "tier": "F"
+    },
+    "BELFB": {
+      "debt_equity": 0.56,
+      "current_ratio": 3.02,
+      "tier": "B"
+    },
+    "BERY": {
+      "debt_equity": 2.45,
+      "current_ratio": 1.25,
+      "tier": "E"
+    },
+    "BG": {
+      "debt_equity": 0.98,
+      "current_ratio": 1.61,
+      "tier": "B"
+    },
+    "BGS": {
+      "debt_equity": 4.42,
+      "current_ratio": 3.53,
+      "tier": "F"
+    },
+    "BHLB": {
+      "debt_equity": 0.0,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "BHP": {
+      "debt_equity": 0.51,
+      "current_ratio": 1.46,
+      "tier": "C"
+    },
+    "BIDU": {
+      "debt_equity": 0.36,
+      "current_ratio": 1.76,
+      "tier": "B"
+    },
+    "BIIB": {
+      "debt_equity": 0.38,
+      "current_ratio": 2.68,
+      "tier": "A"
+    },
+    "BIO": {
+      "debt_equity": 0.21,
+      "current_ratio": 5.62,
+      "tier": "A"
+    },
+    "BJ": {
+      "debt_equity": 1.19,
+      "current_ratio": 0.75,
+      "tier": "D"
+    },
+    "BJRI": {
+      "debt_equity": 1.34,
+      "current_ratio": 0.13,
+      "tier": "D"
+    },
+    "BK": {
+      "debt_equity": 0.76,
+      "current_ratio": 0.7,
+      "tier": "D"
+    },
+    "BKH": {
+      "debt_equity": 1.23,
+      "current_ratio": 1.35,
+      "tier": "D"
+    },
+    "BKNG": {
+      "debt_equity": 999,
+      "current_ratio": 1.33,
+      "tier": "F"
+    },
+    "BKR": {
+      "debt_equity": 0.38,
+      "current_ratio": 1.36,
+      "tier": "C"
+    },
+    "BLK": {
+      "debt_equity": 0.27,
+      "current_ratio": 70.15,
+      "tier": "A"
+    },
+    "BLNK": {
+      "debt_equity": 0.12,
+      "current_ratio": 1.41,
+      "tier": "C"
+    },
+    "BMI": {
+      "debt_equity": 0.0,
+      "current_ratio": 3.36,
+      "tier": "A"
+    },
+    "BMRN": {
+      "debt_equity": 0.11,
+      "current_ratio": 5.21,
+      "tier": "A"
+    },
+    "BMY": {
+      "debt_equity": 2.55,
+      "current_ratio": 1.26,
+      "tier": "E"
+    },
+    "BNTX": {
+      "debt_equity": 0.01,
+      "current_ratio": 7.54,
+      "tier": "A"
+    },
+    "BOH": {
+      "debt_equity": 0.05,
+      "current_ratio": 11.0,
+      "tier": "A"
+    },
+    "BOOT": {
+      "debt_equity": 0.5,
+      "current_ratio": 2.45,
+      "tier": "A"
+    },
+    "BR": {
+      "debt_equity": 1.3,
+      "current_ratio": 0.98,
+      "tier": "D"
+    },
+    "BRK-B": {
+      "debt_equity": 0.19,
+      "current_ratio": 6.75,
+      "tier": "A"
+    },
+    "BRKL": {
+      "debt_equity": 1.28,
+      "current_ratio": 0.14,
+      "tier": "D"
+    },
+    "BRO": {
+      "debt_equity": 0.63,
+      "current_ratio": 1.04,
+      "tier": "D"
+    },
+    "BRT": {
+      "debt_equity": 2.87,
+      "current_ratio": 0.86,
+      "tier": "E"
+    },
+    "BSX": {
+      "debt_equity": 0.51,
+      "current_ratio": 1.62,
+      "tier": "B"
+    },
+    "BWA": {
+      "debt_equity": 0.77,
+      "current_ratio": 2.07,
+      "tier": "B"
+    },
+    "BWXT": {
+      "debt_equity": 1.64,
+      "current_ratio": 2.32,
+      "tier": "D"
+    },
+    "BXP": {
+      "debt_equity": 3.37,
+      "current_ratio": 2.28,
+      "tier": "F"
+    },
+    "BYD": {
+      "debt_equity": 1.25,
+      "current_ratio": 0.54,
+      "tier": "D"
+    },
+    "CACC": {
+      "debt_equity": 4.17,
+      "current_ratio": 0.26,
+      "tier": "F"
+    },
+    "CADE": {
+      "debt_equity": 0.35,
+      "current_ratio": 0.07,
+      "tier": "D"
+    },
+    "CAG": {
+      "debt_equity": 0.9,
+      "current_ratio": 0.71,
+      "tier": "D"
+    },
+    "CAKE": {
+      "debt_equity": 7.93,
+      "current_ratio": 0.59,
+      "tier": "F"
+    },
+    "CAL": {
+      "debt_equity": 1.48,
+      "current_ratio": 1.02,
+      "tier": "D"
+    },
+    "CALM": {
+      "debt_equity": 0.0,
+      "current_ratio": 6.38,
+      "tier": "A"
+    },
+    "CALX": {
+      "debt_equity": 0.03,
+      "current_ratio": 4.24,
+      "tier": "A"
+    },
+    "CARG": {
+      "debt_equity": 0.51,
+      "current_ratio": 2.81,
+      "tier": "B"
+    },
+    "CARR": {
+      "debt_equity": 0.92,
+      "current_ratio": 1.2,
+      "tier": "D"
+    },
+    "CARS": {
+      "debt_equity": 0.99,
+      "current_ratio": 1.87,
+      "tier": "B"
+    },
+    "CASH": {
+      "debt_equity": 0.05,
+      "current_ratio": 0.22,
+      "tier": "D"
+    },
+    "CASY": {
+      "debt_equity": 0.84,
+      "current_ratio": 0.92,
+      "tier": "D"
+    },
+    "CAT": {
+      "debt_equity": 2.03,
+      "current_ratio": 1.44,
+      "tier": "E"
+    },
+    "CATC": {
+      "debt_equity": 0.89,
+      "current_ratio": 0.02,
+      "tier": "D"
+    },
+    "CATO": {
+      "debt_equity": 0.96,
+      "current_ratio": 1.24,
+      "tier": "C"
+    },
+    "CB": {
+      "debt_equity": 0.3,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "CBL": {
+      "debt_equity": 5.79,
+      "current_ratio": 0,
+      "tier": "F"
+    },
+    "CBOE": {
+      "debt_equity": 0.33,
+      "current_ratio": 1.87,
+      "tier": "B"
+    },
+    "CBT": {
+      "debt_equity": 0.78,
+      "current_ratio": 1.61,
+      "tier": "B"
+    },
+    "CBU": {
+      "debt_equity": 0.37,
+      "current_ratio": 1.49,
+      "tier": "C"
+    },
+    "CC": {
+      "debt_equity": 18.34,
+      "current_ratio": 1.78,
+      "tier": "F"
+    },
+    "CCI": {
+      "debt_equity": 999,
+      "current_ratio": 0.26,
+      "tier": "F"
+    },
+    "CCL": {
+      "debt_equity": 2.28,
+      "current_ratio": 0.32,
+      "tier": "E"
+    },
+    "CCO": {
+      "debt_equity": 999,
+      "current_ratio": 1.28,
+      "tier": "F"
+    },
+    "CDNS": {
+      "debt_equity": 0.45,
+      "current_ratio": 2.86,
+      "tier": "A"
+    },
+    "CDR": {
+      "debt_equity": 0.0,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "CE": {
+      "debt_equity": 3.24,
+      "current_ratio": 1.55,
+      "tier": "F"
+    },
+    "CELH": {
+      "debt_equity": 0.23,
+      "current_ratio": 1.68,
+      "tier": "B"
+    },
+    "CENT": {
+      "debt_equity": 0.91,
+      "current_ratio": 3.67,
+      "tier": "B"
+    },
+    "CENTA": {
+      "debt_equity": 0.91,
+      "current_ratio": 3.67,
+      "tier": "B"
+    },
+    "CERT": {
+      "debt_equity": 0.01,
+      "current_ratio": 2.05,
+      "tier": "A"
+    },
+    "CEVA": {
+      "debt_equity": 0.09,
+      "current_ratio": 9.93,
+      "tier": "A"
+    },
+    "CF": {
+      "debt_equity": 0.82,
+      "current_ratio": 3.37,
+      "tier": "B"
+    },
+    "CFG": {
+      "debt_equity": 0.43,
+      "current_ratio": 1.04,
+      "tier": "D"
+    },
+    "CFLT": {
+      "debt_equity": 0.95,
+      "current_ratio": 3.83,
+      "tier": "B"
+    },
+    "CGC": {
+      "debt_equity": 0.72,
+      "current_ratio": 3.12,
+      "tier": "B"
+    },
+    "CGNX": {
+      "debt_equity": 0.05,
+      "current_ratio": 3.8,
+      "tier": "A"
+    },
+    "CHD": {
+      "debt_equity": 0.55,
+      "current_ratio": 1.07,
+      "tier": "D"
+    },
+    "CHPT": {
+      "debt_equity": 12.75,
+      "current_ratio": 1.2,
+      "tier": "F"
+    },
+    "CHRD": {
+      "debt_equity": 0.19,
+      "current_ratio": 1.06,
+      "tier": "D"
+    },
+    "CHTR": {
+      "debt_equity": 6.05,
+      "current_ratio": 0.39,
+      "tier": "F"
+    },
+    "CHUY": {
+      "debt_equity": 0.75,
+      "current_ratio": 1.65,
+      "tier": "B"
+    },
+    "CHX": {
+      "debt_equity": 0.38,
+      "current_ratio": 1.99,
+      "tier": "B"
+    },
+    "CI": {
+      "debt_equity": 0.75,
+      "current_ratio": 0.85,
+      "tier": "D"
+    },
+    "CIEN": {
+      "debt_equity": 0.58,
+      "current_ratio": 2.73,
+      "tier": "B"
+    },
+    "CINF": {
+      "debt_equity": 0.06,
+      "current_ratio": 1.29,
+      "tier": "C"
+    },
+    "CIVI": {
+      "debt_equity": 0.68,
+      "current_ratio": 0.45,
+      "tier": "D"
+    },
+    "CL": {
+      "debt_equity": 147.93,
+      "current_ratio": 1.0,
+      "tier": "F"
+    },
+    "CLF": {
+      "debt_equity": 1.34,
+      "current_ratio": 1.95,
+      "tier": "D"
+    },
+    "CLH": {
+      "debt_equity": 1.26,
+      "current_ratio": 2.33,
+      "tier": "D"
+    },
+    "CLX": {
+      "debt_equity": 8.97,
+      "current_ratio": 0.84,
+      "tier": "F"
+    },
+    "CMC": {
+      "debt_equity": 0.32,
+      "current_ratio": 2.78,
+      "tier": "A"
+    },
+    "CMCSA": {
+      "debt_equity": 1.14,
+      "current_ratio": 0.88,
+      "tier": "D"
+    },
+    "CME": {
+      "debt_equity": 0.13,
+      "current_ratio": 92.97,
+      "tier": "A"
+    },
+    "CMG": {
+      "debt_equity": 3.48,
+      "current_ratio": 1.23,
+      "tier": "F"
+    },
+    "CMS": {
+      "debt_equity": 2.07,
+      "current_ratio": 0.98,
+      "tier": "E"
+    },
+    "CNC": {
+      "debt_equity": 0.94,
+      "current_ratio": 1.68,
+      "tier": "B"
+    },
+    "CNMD": {
+      "debt_equity": 0.81,
+      "current_ratio": 2.14,
+      "tier": "B"
+    },
+    "CNOB": {
+      "debt_equity": 0.74,
+      "current_ratio": 391.51,
+      "tier": "B"
+    },
+    "CNP": {
+      "debt_equity": 2.12,
+      "current_ratio": 0.91,
+      "tier": "E"
+    },
+    "CNX": {
+      "debt_equity": 0.57,
+      "current_ratio": 0.44,
+      "tier": "D"
+    },
+    "COF": {
+      "debt_equity": 0.45,
+      "current_ratio": 0.15,
+      "tier": "D"
+    },
+    "COHR": {
+      "debt_equity": 0.48,
+      "current_ratio": 2.19,
+      "tier": "A"
+    },
+    "COHU": {
+      "debt_equity": 0.46,
+      "current_ratio": 6.88,
+      "tier": "A"
+    },
+    "COIN": {
+      "debt_equity": 0.53,
+      "current_ratio": 2.34,
+      "tier": "B"
+    },
+    "COKE": {
+      "debt_equity": 999,
+      "current_ratio": 1.26,
+      "tier": "F"
+    },
+    "COLD": {
+      "debt_equity": 1.56,
+      "current_ratio": 0.11,
+      "tier": "D"
+    },
+    "COP": {
+      "debt_equity": 0.36,
+      "current_ratio": 1.3,
+      "tier": "C"
+    },
+    "CORT": {
+      "debt_equity": 0.01,
+      "current_ratio": 2.92,
+      "tier": "A"
+    },
+    "COST": {
+      "debt_equity": 0.28,
+      "current_ratio": 1.03,
+      "tier": "D"
+    },
+    "CPB": {
+      "debt_equity": 1.85,
+      "current_ratio": 0.77,
+      "tier": "D"
+    },
+    "CPK": {
+      "debt_equity": 1.02,
+      "current_ratio": 0.45,
+      "tier": "D"
+    },
+    "CPRT": {
+      "debt_equity": 0.01,
+      "current_ratio": 8.25,
+      "tier": "A"
+    },
+    "CPT": {
+      "debt_equity": 0.89,
+      "current_ratio": 0.1,
+      "tier": "D"
+    },
+    "CRC": {
+      "debt_equity": 0.37,
+      "current_ratio": 0.89,
+      "tier": "D"
+    },
+    "CRI": {
+      "debt_equity": 1.31,
+      "current_ratio": 2.51,
+      "tier": "D"
+    },
+    "CRL": {
+      "debt_equity": 0.97,
+      "current_ratio": 1.29,
+      "tier": "C"
+    },
+    "CRM": {
+      "debt_equity": 0.29,
+      "current_ratio": 0.76,
+      "tier": "D"
+    },
+    "CRON": {
+      "debt_equity": 0.0,
+      "current_ratio": 19.59,
+      "tier": "A"
+    },
+    "CROX": {
+      "debt_equity": 1.25,
+      "current_ratio": 1.27,
+      "tier": "D"
+    },
+    "CRSP": {
+      "debt_equity": 0.21,
+      "current_ratio": 13.32,
+      "tier": "A"
+    },
+    "CRWD": {
+      "debt_equity": 0.19,
+      "current_ratio": 1.77,
+      "tier": "B"
+    },
+    "CRY": {
+      "debt_equity": 0.02,
+      "current_ratio": 0.0,
+      "tier": "D"
+    },
+    "CS": {
+      "debt_equity": 3.81,
+      "current_ratio": 3.54,
+      "tier": "F"
+    },
+    "CSCO": {
+      "debt_equity": 0.6,
+      "current_ratio": 1.0,
+      "tier": "D"
+    },
+    "CSR": {
+      "debt_equity": 1.41,
+      "current_ratio": 0.1,
+      "tier": "D"
+    },
+    "CSWI": {
+      "debt_equity": 0.06,
+      "current_ratio": 4.03,
+      "tier": "A"
+    },
+    "CSX": {
+      "debt_equity": 1.47,
+      "current_ratio": 0.81,
+      "tier": "D"
+    },
+    "CTAS": {
+      "debt_equity": 0.57,
+      "current_ratio": 2.09,
+      "tier": "B"
+    },
+    "CTLT": {
+      "debt_equity": 1.36,
+      "current_ratio": 2.52,
+      "tier": "D"
+    },
+    "CTRA": {
+      "debt_equity": 0.27,
+      "current_ratio": 1.19,
+      "tier": "D"
+    },
+    "CTS": {
+      "debt_equity": 0.22,
+      "current_ratio": 2.3,
+      "tier": "A"
+    },
+    "CTSH": {
+      "debt_equity": 0.1,
+      "current_ratio": 2.34,
+      "tier": "A"
+    },
+    "CUBE": {
+      "debt_equity": 1.3,
+      "current_ratio": 0.13,
+      "tier": "D"
+    },
+    "CUZ": {
+      "debt_equity": 0.79,
+      "current_ratio": 0.34,
+      "tier": "D"
+    },
+    "CVBF": {
+      "debt_equity": 0.43,
+      "current_ratio": 0.01,
+      "tier": "D"
+    },
+    "CVX": {
+      "debt_equity": 0.25,
+      "current_ratio": 1.15,
+      "tier": "D"
+    },
+    "CW": {
+      "debt_equity": 0.52,
+      "current_ratio": 1.44,
+      "tier": "C"
+    },
+    "CWEN": {
+      "debt_equity": 5.3,
+      "current_ratio": 1.13,
+      "tier": "F"
+    },
+    "CYBR": {
+      "debt_equity": 0.51,
+      "current_ratio": 2.0,
+      "tier": "B"
+    },
+    "CYT": {
+      "debt_equity": 0.01,
+      "current_ratio": 28.07,
+      "tier": "A"
+    },
+    "CZR": {
+      "debt_equity": 7.52,
+      "current_ratio": 0.8,
+      "tier": "F"
+    },
+    "D": {
+      "debt_equity": 1.68,
+      "current_ratio": 0.77,
+      "tier": "D"
+    },
+    "DAL": {
+      "debt_equity": 1.02,
+      "current_ratio": 0.4,
+      "tier": "D"
+    },
+    "DASH": {
+      "debt_equity": 0.37,
+      "current_ratio": 1.41,
+      "tier": "C"
+    },
+    "DB": {
+      "debt_equity": 3.24,
+      "current_ratio": 0.37,
+      "tier": "F"
+    },
+    "DCPH": {
+      "debt_equity": 0.07,
+      "current_ratio": 3.8,
+      "tier": "A"
+    },
+    "DD": {
+      "debt_equity": 0.23,
+      "current_ratio": 2.42,
+      "tier": "A"
+    },
+    "DDOG": {
+      "debt_equity": 0.41,
+      "current_ratio": 3.38,
+      "tier": "A"
+    },
+    "DE": {
+      "debt_equity": 2.46,
+      "current_ratio": 2.31,
+      "tier": "E"
+    },
+    "DECK": {
+      "debt_equity": 0.11,
+      "current_ratio": 3.72,
+      "tier": "A"
+    },
+    "DEI": {
+      "debt_equity": 2.92,
+      "current_ratio": 0.09,
+      "tier": "E"
+    },
+    "DEN": {
+      "debt_equity": 0.03,
+      "current_ratio": 0.59,
+      "tier": "D"
+    },
+    "DENN": {
+      "debt_equity": 999,
+      "current_ratio": 0.42,
+      "tier": "F"
+    },
+    "DFS": {
+      "debt_equity": 0.91,
+      "current_ratio": 0.15,
+      "tier": "D"
+    },
+    "DG": {
+      "debt_equity": 1.85,
+      "current_ratio": 1.13,
+      "tier": "D"
+    },
+    "DGX": {
+      "debt_equity": 0.96,
+      "current_ratio": 1.04,
+      "tier": "D"
+    },
+    "DHI": {
+      "debt_equity": 0.25,
+      "current_ratio": 17.39,
+      "tier": "A"
+    },
+    "DHR": {
+      "debt_equity": 0.35,
+      "current_ratio": 1.87,
+      "tier": "B"
+    },
+    "DIGI": {
+      "debt_equity": 999,
+      "current_ratio": 0.2,
+      "tier": "F"
+    },
+    "DIN": {
+      "debt_equity": 999,
+      "current_ratio": 0.96,
+      "tier": "F"
+    },
+    "DINO": {
+      "debt_equity": 0.35,
+      "current_ratio": 1.94,
+      "tier": "B"
+    },
+    "DIOD": {
+      "debt_equity": 0.05,
+      "current_ratio": 3.32,
+      "tier": "A"
+    },
+    "DIS": {
+      "debt_equity": 0.41,
+      "current_ratio": 0.71,
+      "tier": "D"
+    },
+    "DLR": {
+      "debt_equity": 1.05,
+      "current_ratio": 4.5,
+      "tier": "D"
+    },
+    "DLTR": {
+      "debt_equity": 1.23,
+      "current_ratio": 1.07,
+      "tier": "D"
+    },
+    "DNOW": {
+      "debt_equity": 0.3,
+      "current_ratio": 2.34,
+      "tier": "A"
+    },
+    "DOCN": {
+      "debt_equity": 999,
+      "current_ratio": 0.69,
+      "tier": "F"
+    },
+    "DORM": {
+      "debt_equity": 0.43,
+      "current_ratio": 3.09,
+      "tier": "A"
+    },
+    "DOV": {
+      "debt_equity": 0.51,
+      "current_ratio": 1.79,
+      "tier": "B"
+    },
+    "DOW": {
+      "debt_equity": 1.22,
+      "current_ratio": 1.97,
+      "tier": "D"
+    },
+    "DRI": {
+      "debt_equity": 2.7,
+      "current_ratio": 0.42,
+      "tier": "E"
+    },
+    "DT": {
+      "debt_equity": 0.03,
+      "current_ratio": 1.4,
+      "tier": "C"
+    },
+    "DTE": {
+      "debt_equity": 2.16,
+      "current_ratio": 0.8,
+      "tier": "E"
+    },
+    "DUK": {
+      "debt_equity": 1.75,
+      "current_ratio": 0.55,
+      "tier": "D"
+    },
+    "DVN": {
+      "debt_equity": 0.57,
+      "current_ratio": 0.98,
+      "tier": "D"
+    },
+    "DXCM": {
+      "debt_equity": 0.51,
+      "current_ratio": 1.88,
+      "tier": "B"
+    },
+    "DY": {
+      "debt_equity": 1.61,
+      "current_ratio": 2.74,
+      "tier": "D"
+    },
+    "EA": {
+      "debt_equity": 0.35,
+      "current_ratio": 0.95,
+      "tier": "D"
+    },
+    "EAT": {
+      "debt_equity": 4.57,
+      "current_ratio": 0.31,
+      "tier": "F"
+    },
+    "EBAY": {
+      "debt_equity": 1.6,
+      "current_ratio": 1.1,
+      "tier": "D"
+    },
+    "ECL": {
+      "debt_equity": 0.97,
+      "current_ratio": 1.08,
+      "tier": "D"
+    },
+    "ECOL": {
+      "debt_equity": 1.25,
+      "current_ratio": 1.95,
+      "tier": "D"
+    },
+    "ED": {
+      "debt_equity": 1.19,
+      "current_ratio": 1.02,
+      "tier": "D"
+    },
+    "EFC": {
+      "debt_equity": 9.25,
+      "current_ratio": 0.08,
+      "tier": "F"
+    },
+    "EFX": {
+      "debt_equity": 1.11,
+      "current_ratio": 0.6,
+      "tier": "D"
+    },
+    "EGP": {
+      "debt_equity": 0.5,
+      "current_ratio": 0.85,
+      "tier": "D"
+    },
+    "EL": {
+      "debt_equity": 2.44,
+      "current_ratio": 1.3,
+      "tier": "E"
+    },
+    "ELV": {
+      "debt_equity": 0.76,
+      "current_ratio": 1.24,
+      "tier": "C"
+    },
+    "EMN": {
+      "debt_equity": 0.85,
+      "current_ratio": 1.37,
+      "tier": "C"
+    },
+    "EMR": {
+      "debt_equity": 0.68,
+      "current_ratio": 0.88,
+      "tier": "D"
+    },
+    "ENPH": {
+      "debt_equity": 1.14,
+      "current_ratio": 2.07,
+      "tier": "D"
+    },
+    "ENS": {
+      "debt_equity": 0.63,
+      "current_ratio": 2.7,
+      "tier": "B"
+    },
+    "ENSG": {
+      "debt_equity": 1.86,
+      "current_ratio": 1.42,
+      "tier": "D"
+    },
+    "ENTG": {
+      "debt_equity": 0.98,
+      "current_ratio": 3.35,
+      "tier": "B"
+    },
+    "EOG": {
+      "debt_equity": 0.28,
+      "current_ratio": 1.92,
+      "tier": "B"
+    },
+    "EPAM": {
+      "debt_equity": 0.04,
+      "current_ratio": 2.59,
+      "tier": "A"
+    },
+    "EQIX": {
+      "debt_equity": 1.61,
+      "current_ratio": 1.32,
+      "tier": "D"
+    },
+    "EQR": {
+      "debt_equity": 0.8,
+      "current_ratio": 0.05,
+      "tier": "D"
+    },
+    "EQT": {
+      "debt_equity": 0.33,
+      "current_ratio": 0.76,
+      "tier": "D"
+    },
+    "ERIE": {
+      "debt_equity": 0.0,
+      "current_ratio": 1.27,
+      "tier": "C"
+    },
+    "ES": {
+      "debt_equity": 1.87,
+      "current_ratio": 0.65,
+      "tier": "D"
+    },
+    "ESAB": {
+      "debt_equity": 0.66,
+      "current_ratio": 1.9,
+      "tier": "B"
+    },
+    "ESGR": {
+      "debt_equity": 0.3,
+      "current_ratio": 0.65,
+      "tier": "D"
+    },
+    "ESS": {
+      "debt_equity": 1.25,
+      "current_ratio": 2.3,
+      "tier": "D"
+    },
+    "ESTC": {
+      "debt_equity": 0.64,
+      "current_ratio": 1.92,
+      "tier": "B"
+    },
+    "ET": {
+      "debt_equity": 2.08,
+      "current_ratio": 1.22,
+      "tier": "E"
+    },
+    "ETN": {
+      "debt_equity": 0.57,
+      "current_ratio": 1.32,
+      "tier": "C"
+    },
+    "ETNB": {
+      "debt_equity": 0.09,
+      "current_ratio": 13.19,
+      "tier": "A"
+    },
+    "ETSY": {
+      "debt_equity": 999,
+      "current_ratio": 1.44,
+      "tier": "F"
+    },
+    "EVC": {
+      "debt_equity": 3.85,
+      "current_ratio": 1.51,
+      "tier": "F"
+    },
+    "EVGO": {
+      "debt_equity": 0.28,
+      "current_ratio": 2.19,
+      "tier": "A"
+    },
+    "EVRG": {
+      "debt_equity": 1.51,
+      "current_ratio": 0.49,
+      "tier": "D"
+    },
+    "EVTC": {
+      "debt_equity": 1.87,
+      "current_ratio": 2.07,
+      "tier": "D"
+    },
+    "EW": {
+      "debt_equity": 0.07,
+      "current_ratio": 3.72,
+      "tier": "A"
+    },
+    "EWBC": {
+      "debt_equity": 0.36,
+      "current_ratio": 0.32,
+      "tier": "D"
+    },
+    "EXAS": {
+      "debt_equity": 1.05,
+      "current_ratio": 2.43,
+      "tier": "D"
+    },
+    "EXC": {
+      "debt_equity": 1.76,
+      "current_ratio": 0.92,
+      "tier": "D"
+    },
+    "EXEL": {
+      "debt_equity": 0.08,
+      "current_ratio": 3.56,
+      "tier": "A"
+    },
+    "EXPE": {
+      "debt_equity": 5.19,
+      "current_ratio": 0.73,
+      "tier": "F"
+    },
+    "EXPO": {
+      "debt_equity": 0.21,
+      "current_ratio": 2.4,
+      "tier": "A"
+    },
+    "F": {
+      "debt_equity": 4.66,
+      "current_ratio": 1.07,
+      "tier": "F"
+    },
+    "FANG": {
+      "debt_equity": 0.39,
+      "current_ratio": 0.42,
+      "tier": "D"
+    },
+    "FAST": {
+      "debt_equity": 0.11,
+      "current_ratio": 4.85,
+      "tier": "A"
+    },
+    "FBP": {
+      "debt_equity": 0.19,
+      "current_ratio": 6.85,
+      "tier": "A"
+    },
+    "FCEL": {
+      "debt_equity": 0.2,
+      "current_ratio": 6.63,
+      "tier": "A"
+    },
+    "FCF": {
+      "debt_equity": 0.29,
+      "current_ratio": 0.37,
+      "tier": "D"
+    },
+    "FCX": {
+      "debt_equity": 0.61,
+      "current_ratio": 2.29,
+      "tier": "B"
+    },
+    "FDS": {
+      "debt_equity": 0.71,
+      "current_ratio": 1.4,
+      "tier": "C"
+    },
+    "FDX": {
+      "debt_equity": 1.33,
+      "current_ratio": 1.19,
+      "tier": "D"
+    },
+    "FE": {
+      "debt_equity": 2.16,
+      "current_ratio": 0.57,
+      "tier": "E"
+    },
+    "FFBC": {
+      "debt_equity": 0.43,
+      "current_ratio": 0.28,
+      "tier": "D"
+    },
+    "FFIN": {
+      "debt_equity": 0.01,
+      "current_ratio": 0.68,
+      "tier": "D"
+    },
+    "FFIV": {
+      "debt_equity": 0.14,
+      "current_ratio": 1.54,
+      "tier": "B"
+    },
+    "FHN": {
+      "debt_equity": 0.52,
+      "current_ratio": 0.96,
+      "tier": "D"
+    },
+    "FIS": {
+      "debt_equity": 0.29,
+      "current_ratio": 0.59,
+      "tier": "D"
+    },
+    "LULU": {
+      "debt_equity": 0.36,
+      "current_ratio": 2.26,
+      "tier": "A"
+    },
+    "LUMN": {
+      "debt_equity": 999,
+      "current_ratio": 1.8,
+      "tier": "F"
+    },
+    "LUNR": {
+      "debt_equity": 999,
+      "current_ratio": 4.96,
+      "tier": "F"
+    },
+    "LUV": {
+      "debt_equity": 0.75,
+      "current_ratio": 0.52,
+      "tier": "D"
+    },
+    "LVS": {
+      "debt_equity": 10.15,
+      "current_ratio": 1.14,
+      "tier": "F"
+    },
+    "LYV": {
+      "debt_equity": 45.91,
+      "current_ratio": 1.0,
+      "tier": "F"
+    },
+    "LZB": {
+      "debt_equity": 0.48,
+      "current_ratio": 1.91,
+      "tier": "B"
+    },
+    "MA": {
+      "debt_equity": 2.46,
+      "current_ratio": 1.03,
+      "tier": "E"
+    },
+    "MAA": {
+      "debt_equity": 0.95,
+      "current_ratio": 0.16,
+      "tier": "D"
+    },
+    "MAC": {
+      "debt_equity": 2.12,
+      "current_ratio": 0.09,
+      "tier": "E"
+    },
+    "MANH": {
+      "debt_equity": 0.36,
+      "current_ratio": 1.28,
+      "tier": "C"
+    },
+    "MAR": {
+      "debt_equity": 999,
+      "current_ratio": 0.43,
+      "tier": "F"
+    },
+    "MARA": {
+      "debt_equity": 1.05,
+      "current_ratio": 1.27,
+      "tier": "D"
+    },
+    "MAS": {
+      "debt_equity": 999,
+      "current_ratio": 1.81,
+      "tier": "F"
+    },
+    "MASI": {
+      "debt_equity": 0.78,
+      "current_ratio": 2.49,
+      "tier": "B"
+    },
+    "MATX": {
+      "debt_equity": 0.26,
+      "current_ratio": 0.89,
+      "tier": "D"
+    },
+    "MAXR": {
+      "debt_equity": 1.7,
+      "current_ratio": 0.83,
+      "tier": "D"
+    },
+    "MCD": {
+      "debt_equity": 999,
+      "current_ratio": 0.95,
+      "tier": "F"
+    },
+    "MCHP": {
+      "debt_equity": 0.8,
+      "current_ratio": 2.59,
+      "tier": "B"
+    },
+    "MCO": {
+      "debt_equity": 1.81,
+      "current_ratio": 1.74,
+      "tier": "D"
+    },
+    "MCRI": {
+      "debt_equity": 0.05,
+      "current_ratio": 0.86,
+      "tier": "D"
+    },
+    "MDB": {
+      "debt_equity": 0.01,
+      "current_ratio": 4.65,
+      "tier": "A"
+    },
+    "MDLZ": {
+      "debt_equity": 0.87,
+      "current_ratio": 0.59,
+      "tier": "D"
+    },
+    "MDT": {
+      "debt_equity": 0.59,
+      "current_ratio": 1.85,
+      "tier": "B"
+    },
+    "MDU": {
+      "debt_equity": 0.99,
+      "current_ratio": 0.84,
+      "tier": "D"
+    },
+    "MEDP": {
+      "debt_equity": 0.55,
+      "current_ratio": 0.74,
+      "tier": "D"
+    },
+    "MELI": {
+      "debt_equity": 1.69,
+      "current_ratio": 1.17,
+      "tier": "D"
+    },
+    "MET": {
+      "debt_equity": 0.71,
+      "current_ratio": 0.65,
+      "tier": "D"
+    },
+    "META": {
+      "debt_equity": 0.39,
+      "current_ratio": 2.6,
+      "tier": "A"
+    },
+    "MGEE": {
+      "debt_equity": 0.72,
+      "current_ratio": 0.77,
+      "tier": "D"
+    },
+    "MGM": {
+      "debt_equity": 23.11,
+      "current_ratio": 1.23,
+      "tier": "F"
+    },
+    "MGNI": {
+      "debt_equity": 0.3,
+      "current_ratio": 1.02,
+      "tier": "D"
+    },
+    "MGPI": {
+      "debt_equity": 0.37,
+      "current_ratio": 2.61,
+      "tier": "A"
+    },
+    "MGY": {
+      "debt_equity": 0.22,
+      "current_ratio": 1.54,
+      "tier": "B"
+    },
+    "MIDD": {
+      "debt_equity": 0.78,
+      "current_ratio": 2.57,
+      "tier": "B"
+    },
+    "MKC": {
+      "debt_equity": 0.7,
+      "current_ratio": 0.7,
+      "tier": "D"
+    },
+    "MKSI": {
+      "debt_equity": 1.73,
+      "current_ratio": 2.71,
+      "tier": "D"
+    },
+    "MKTX": {
+      "debt_equity": 0.25,
+      "current_ratio": 1.84,
+      "tier": "B"
+    },
+    "MLM": {
+      "debt_equity": 0.53,
+      "current_ratio": 3.57,
+      "tier": "B"
+    },
+    "MMC": {
+      "debt_equity": 37.04,
+      "current_ratio": 1.1,
+      "tier": "F"
+    },
+    "MMSI": {
+      "debt_equity": 0.57,
+      "current_ratio": 4.34,
+      "tier": "B"
+    },
+    "MNST": {
+      "debt_equity": 0.0,
+      "current_ratio": 3.7,
+      "tier": "A"
+    },
+    "MO": {
+      "debt_equity": 999,
+      "current_ratio": 0.61,
+      "tier": "F"
+    },
+    "MOD": {
+      "debt_equity": 0.58,
+      "current_ratio": 1.78,
+      "tier": "B"
+    },
+    "MOH": {
+      "debt_equity": 0.97,
+      "current_ratio": 1.69,
+      "tier": "B"
+    },
+    "MOS": {
+      "debt_equity": 0.44,
+      "current_ratio": 1.32,
+      "tier": "C"
+    },
+    "MPC": {
+      "debt_equity": 1.98,
+      "current_ratio": 1.26,
+      "tier": "D"
+    },
+    "MPWR": {
+      "debt_equity": 0.01,
+      "current_ratio": 5.91,
+      "tier": "A"
+    },
+    "MRCY": {
+      "debt_equity": 0.44,
+      "current_ratio": 3.52,
+      "tier": "A"
+    },
+    "MRK": {
+      "debt_equity": 0.96,
+      "current_ratio": 1.54,
+      "tier": "B"
+    },
+    "MRNA": {
+      "debt_equity": 0.22,
+      "current_ratio": 3.29,
+      "tier": "A"
+    },
+    "MRO": {
+      "debt_equity": 0.48,
+      "current_ratio": 0.4,
+      "tier": "D"
+    },
+    "MRVL": {
+      "debt_equity": 0.31,
+      "current_ratio": 2.01,
+      "tier": "A"
+    },
+    "MS": {
+      "debt_equity": 4.26,
+      "current_ratio": 1.17,
+      "tier": "F"
+    },
+    "MSCI": {
+      "debt_equity": 999,
+      "current_ratio": 0.9,
+      "tier": "F"
+    },
+    "MSFT": {
+      "debt_equity": 0.33,
+      "current_ratio": 1.35,
+      "tier": "C"
+    },
+    "MSGS": {
+      "debt_equity": 999,
+      "current_ratio": 0.44,
+      "tier": "F"
+    },
+    "MTB": {
+      "debt_equity": 0.45,
+      "current_ratio": 0.32,
+      "tier": "D"
+    },
+    "MTCH": {
+      "debt_equity": 999,
+      "current_ratio": 1.42,
+      "tier": "F"
+    },
+    "MTD": {
+      "debt_equity": 999,
+      "current_ratio": 1.14,
+      "tier": "F"
+    },
+    "MTDR": {
+      "debt_equity": 0.63,
+      "current_ratio": 0.79,
+      "tier": "D"
+    },
+    "MTRN": {
+      "debt_equity": 0.64,
+      "current_ratio": 3.11,
+      "tier": "B"
+    },
+    "MTSI": {
+      "debt_equity": 0.41,
+      "current_ratio": 3.71,
+      "tier": "A"
+    },
+    "MTX": {
+      "debt_equity": 0.61,
+      "current_ratio": 2.08,
+      "tier": "B"
+    },
+    "MTZ": {
+      "debt_equity": 0.86,
+      "current_ratio": 1.32,
+      "tier": "C"
+    },
+    "MWA": {
+      "debt_equity": 0.46,
+      "current_ratio": 3.54,
+      "tier": "A"
+    },
+    "MYRG": {
+      "debt_equity": 0.16,
+      "current_ratio": 1.33,
+      "tier": "C"
+    },
+    "NBIX": {
+      "debt_equity": 0.13,
+      "current_ratio": 3.39,
+      "tier": "A"
+    },
+    "NBTB": {
+      "debt_equity": 0.17,
+      "current_ratio": 1.6,
+      "tier": "B"
+    },
+    "NCLH": {
+      "debt_equity": 6.61,
+      "current_ratio": 0.21,
+      "tier": "F"
+    },
+    "NDAQ": {
+      "debt_equity": 0.81,
+      "current_ratio": 1.01,
+      "tier": "D"
+    },
+    "NDSN": {
+      "debt_equity": 0.71,
+      "current_ratio": 1.64,
+      "tier": "B"
+    },
+    "NEE": {
+      "debt_equity": 1.75,
+      "current_ratio": 0.6,
+      "tier": "D"
+    },
+    "NEM": {
+      "debt_equity": 0.01,
+      "current_ratio": 1.72,
+      "tier": "B"
+    },
+    "NEO": {
+      "debt_equity": 0.56,
+      "current_ratio": 4.26,
+      "tier": "B"
+    },
+    "NET": {
+      "debt_equity": 2.54,
+      "current_ratio": 1.98,
+      "tier": "E"
+    },
+    "NEXT": {
+      "debt_equity": 90.8,
+      "current_ratio": 0.54,
+      "tier": "F"
+    },
+    "NFLX": {
+      "debt_equity": 0.54,
+      "current_ratio": 1.19,
+      "tier": "D"
+    },
+    "NGVT": {
+      "debt_equity": 41.84,
+      "current_ratio": 1.15,
+      "tier": "F"
+    },
+    "NHC": {
+      "debt_equity": 0.08,
+      "current_ratio": 1.77,
+      "tier": "B"
+    },
+    "NI": {
+      "debt_equity": 1.72,
+      "current_ratio": 0.69,
+      "tier": "D"
+    },
+    "NIO": {
+      "debt_equity": 6.31,
+      "current_ratio": 0.98,
+      "tier": "F"
+    },
+    "NKE": {
+      "debt_equity": 0.83,
+      "current_ratio": 2.21,
+      "tier": "B"
+    },
+    "NKTR": {
+      "debt_equity": 1.66,
+      "current_ratio": 4.97,
+      "tier": "D"
+    },
+    "NNBR": {
+      "debt_equity": 1.44,
+      "current_ratio": 1.83,
+      "tier": "D"
+    },
+    "NNN": {
+      "debt_equity": 1.09,
+      "current_ratio": 0.19,
+      "tier": "D"
+    },
+    "NOC": {
+      "debt_equity": 1.18,
+      "current_ratio": 1.09,
+      "tier": "D"
+    },
+    "NOG": {
+      "debt_equity": 1.13,
+      "current_ratio": 1.09,
+      "tier": "D"
+    },
+    "NOVA": {
+      "debt_equity": 4.62,
+      "current_ratio": 0.78,
+      "tier": "F"
+    },
+    "NOVT": {
+      "debt_equity": 0.26,
+      "current_ratio": 3.69,
+      "tier": "A"
+    },
+    "NOW": {
+      "debt_equity": 0.25,
+      "current_ratio": 0.95,
+      "tier": "D"
+    },
+    "NPO": {
+      "debt_equity": 0.42,
+      "current_ratio": 2.32,
+      "tier": "A"
+    },
+    "NRG": {
+      "debt_equity": 9.97,
+      "current_ratio": 1.64,
+      "tier": "F"
+    },
+    "NSA": {
+      "debt_equity": 3.62,
+      "current_ratio": 0.11,
+      "tier": "F"
+    },
+    "NSC": {
+      "debt_equity": 1.1,
+      "current_ratio": 0.85,
+      "tier": "D"
+    },
+    "NSIT": {
+      "debt_equity": 0.96,
+      "current_ratio": 1.25,
+      "tier": "C"
+    },
+    "NTRS": {
+      "debt_equity": 1.27,
+      "current_ratio": 0.41,
+      "tier": "D"
+    },
+    "NU": {
+      "debt_equity": 3.34,
+      "current_ratio": 0.4,
+      "tier": "F"
+    },
+    "NUE": {
+      "debt_equity": 0.34,
+      "current_ratio": 2.94,
+      "tier": "A"
+    },
+    "NVCR": {
+      "debt_equity": 0.85,
+      "current_ratio": 2.9,
+      "tier": "B"
+    },
+    "NVDA": {
+      "debt_equity": 0.07,
+      "current_ratio": 3.91,
+      "tier": "A"
+    },
+    "NVR": {
+      "debt_equity": 0.31,
+      "current_ratio": 3.95,
+      "tier": "A"
+    },
+    "NVS": {
+      "debt_equity": 0.8,
+      "current_ratio": 1.12,
+      "tier": "D"
+    },
+    "NVST": {
+      "debt_equity": 0.55,
+      "current_ratio": 2.38,
+      "tier": "B"
+    },
+    "NWBI": {
+      "debt_equity": 0.24,
+      "current_ratio": 0.13,
+      "tier": "D"
+    },
+    "NWE": {
+      "debt_equity": 1.14,
+      "current_ratio": 0.72,
+      "tier": "D"
+    },
+    "NWS": {
+      "debt_equity": 0.34,
+      "current_ratio": 1.84,
+      "tier": "B"
+    },
+    "NWSA": {
+      "debt_equity": 0.34,
+      "current_ratio": 1.84,
+      "tier": "B"
+    },
+    "NXPI": {
+      "debt_equity": 1.22,
+      "current_ratio": 2.05,
+      "tier": "D"
+    },
+    "NXRT": {
+      "debt_equity": 5.27,
+      "current_ratio": 4.33,
+      "tier": "F"
+    },
+    "O": {
+      "debt_equity": 0.83,
+      "current_ratio": 0.51,
+      "tier": "D"
+    },
+    "OCFC": {
+      "debt_equity": 0.98,
+      "current_ratio": 0.13,
+      "tier": "D"
+    },
+    "ODFL": {
+      "debt_equity": 0.01,
+      "current_ratio": 1.44,
+      "tier": "C"
+    },
+    "ODP": {
+      "debt_equity": 1.31,
+      "current_ratio": 0.93,
+      "tier": "D"
+    },
+    "OFIX": {
+      "debt_equity": 0.51,
+      "current_ratio": 2.45,
+      "tier": "B"
+    },
+    "OGE": {
+      "debt_equity": 1.14,
+      "current_ratio": 0.78,
+      "tier": "D"
+    },
+    "OGN": {
+      "debt_equity": 11.7,
+      "current_ratio": 1.82,
+      "tier": "F"
+    },
+    "OHI": {
+      "debt_equity": 0.82,
+      "current_ratio": 3.46,
+      "tier": "B"
+    },
+    "OI": {
+      "debt_equity": 3.86,
+      "current_ratio": 1.25,
+      "tier": "F"
+    },
+    "OIS": {
+      "debt_equity": 0.15,
+      "current_ratio": 1.86,
+      "tier": "B"
+    },
+    "OKE": {
+      "debt_equity": 1.46,
+      "current_ratio": 0.71,
+      "tier": "D"
+    },
+    "OLK": {
+      "debt_equity": 0.05,
+      "current_ratio": 4.75,
+      "tier": "A"
+    },
+    "OLN": {
+      "debt_equity": 1.79,
+      "current_ratio": 1.35,
+      "tier": "D"
+    },
+    "OMC": {
+      "debt_equity": 1.06,
+      "current_ratio": 0.93,
+      "tier": "D"
+    },
+    "OMCL": {
+      "debt_equity": 0.17,
+      "current_ratio": 1.43,
+      "tier": "C"
+    },
+    "OMED": {
+      "debt_equity": 0.09,
+      "current_ratio": 5.04,
+      "tier": "A"
+    },
+    "ON": {
+      "debt_equity": 0.45,
+      "current_ratio": 4.52,
+      "tier": "A"
+    },
+    "OOMA": {
+      "debt_equity": 0.74,
+      "current_ratio": 0.93,
+      "tier": "D"
+    },
+    "ORCL": {
+      "debt_equity": 5.09,
+      "current_ratio": 0.75,
+      "tier": "F"
+    },
+    "ORI": {
+      "debt_equity": 0.3,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "ORLY": {
+      "debt_equity": 999,
+      "current_ratio": 0.77,
+      "tier": "F"
+    },
+    "OSIS": {
+      "debt_equity": 0.72,
+      "current_ratio": 2.04,
+      "tier": "B"
+    },
+    "OTIS": {
+      "debt_equity": 999,
+      "current_ratio": 0.85,
+      "tier": "F"
+    },
+    "OTTR": {
+      "debt_equity": 0.59,
+      "current_ratio": 2.28,
+      "tier": "B"
+    },
+    "OXY": {
+      "debt_equity": 0.66,
+      "current_ratio": 0.94,
+      "tier": "D"
+    },
+    "OZK": {
+      "debt_equity": 0.08,
+      "current_ratio": 0.8,
+      "tier": "D"
+    },
+    "PAAS": {
+      "debt_equity": 0.13,
+      "current_ratio": 2.69,
+      "tier": "A"
+    },
+    "PACW": {
+      "debt_equity": 1.05,
+      "current_ratio": 2.27,
+      "tier": "D"
+    },
+    "PANW": {
+      "debt_equity": 0.04,
+      "current_ratio": 0.89,
+      "tier": "D"
+    },
+    "PARA": {
+      "debt_equity": 1.39,
+      "current_ratio": 1.26,
+      "tier": "D"
+    },
+    "PARR": {
+      "debt_equity": 0.92,
+      "current_ratio": 1.6,
+      "tier": "B"
+    },
+    "PATH": {
+      "debt_equity": 0.03,
+      "current_ratio": 2.48,
+      "tier": "A"
+    },
+    "PATK": {
+      "debt_equity": 1.39,
+      "current_ratio": 2.51,
+      "tier": "D"
+    },
+    "PAYC": {
+      "debt_equity": 0.09,
+      "current_ratio": 1.09,
+      "tier": "D"
+    },
+    "PAYO": {
+      "debt_equity": 0.1,
+      "current_ratio": 1.0,
+      "tier": "D"
+    },
+    "PAYX": {
+      "debt_equity": 1.22,
+      "current_ratio": 1.28,
+      "tier": "D"
+    },
+    "PBF": {
+      "debt_equity": 0.55,
+      "current_ratio": 1.21,
+      "tier": "C"
+    },
+    "PCAR": {
+      "debt_equity": 0.0,
+      "current_ratio": 1.7,
+      "tier": "B"
+    },
+    "PCBK": {
+      "debt_equity": 0.36,
+      "current_ratio": 13.2,
+      "tier": "A"
+    },
+    "PCRX": {
+      "debt_equity": 0.66,
+      "current_ratio": 4.54,
+      "tier": "B"
+    },
+    "PCTY": {
+      "debt_equity": 0.18,
+      "current_ratio": 1.14,
+      "tier": "D"
+    },
+    "PCVX": {
+      "debt_equity": 0.09,
+      "current_ratio": 7.91,
+      "tier": "A"
+    },
+    "PDD": {
+      "debt_equity": 0.01,
+      "current_ratio": 2.45,
+      "tier": "A"
+    },
+    "PDM": {
+      "debt_equity": 1.52,
+      "current_ratio": 2.0,
+      "tier": "D"
+    },
+    "PEAK": {
+      "debt_equity": 0.0,
+      "current_ratio": 1.09,
+      "tier": "D"
+    },
+    "PEB": {
+      "debt_equity": 1.0,
+      "current_ratio": 0.7,
+      "tier": "D"
+    },
+    "PEG": {
+      "debt_equity": 1.44,
+      "current_ratio": 0.8,
+      "tier": "D"
+    },
+    "PENN": {
+      "debt_equity": 4.57,
+      "current_ratio": 0.79,
+      "tier": "F"
+    },
+    "PEP": {
+      "debt_equity": 2.45,
+      "current_ratio": 0.85,
+      "tier": "E"
+    },
+    "PFE": {
+      "debt_equity": 0.78,
+      "current_ratio": 1.16,
+      "tier": "D"
+    },
+    "PFGC": {
+      "debt_equity": 1.79,
+      "current_ratio": 1.58,
+      "tier": "D"
+    },
+    "PFS": {
+      "debt_equity": 0.89,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "PG": {
+      "debt_equity": 0.68,
+      "current_ratio": 0.7,
+      "tier": "D"
+    },
+    "PGNY": {
+      "debt_equity": 0.05,
+      "current_ratio": 2.73,
+      "tier": "A"
+    },
+    "PGR": {
+      "debt_equity": 0.0,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "PH": {
+      "debt_equity": 0.7,
+      "current_ratio": 1.19,
+      "tier": "D"
+    },
+    "PHM": {
+      "debt_equity": 0.19,
+      "current_ratio": 5.91,
+      "tier": "A"
+    },
+    "PINS": {
+      "debt_equity": 0.06,
+      "current_ratio": 7.64,
+      "tier": "A"
+    },
+    "PIPR": {
+      "debt_equity": 0.0,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "PKG": {
+      "debt_equity": 0.95,
+      "current_ratio": 3.17,
+      "tier": "B"
+    },
+    "PLAY": {
+      "debt_equity": 0.76,
+      "current_ratio": 0.29,
+      "tier": "D"
+    },
+    "PLD": {
+      "debt_equity": 0.66,
+      "current_ratio": 0.23,
+      "tier": "D"
+    },
+    "PLNT": {
+      "debt_equity": 999,
+      "current_ratio": 2.11,
+      "tier": "F"
+    },
+    "PLTR": {
+      "debt_equity": 0.06,
+      "current_ratio": 7.11,
+      "tier": "A"
+    },
+    "PLUG": {
+      "debt_equity": 1.02,
+      "current_ratio": 2.31,
+      "tier": "D"
+    },
+    "PLUS": {
+      "debt_equity": 0.13,
+      "current_ratio": 1.71,
+      "tier": "B"
+    },
+    "PLYM": {
+      "debt_equity": 1.11,
+      "current_ratio": 0.42,
+      "tier": "D"
+    },
+    "PM": {
+      "debt_equity": 999,
+      "current_ratio": 0.96,
+      "tier": "F"
+    },
+    "PNC": {
+      "debt_equity": 0.94,
+      "current_ratio": 0.81,
+      "tier": "D"
+    },
+    "PNFP": {
+      "debt_equity": 0.36,
+      "current_ratio": 1.07,
+      "tier": "D"
+    },
+    "PNM": {
+      "debt_equity": 0.0,
+      "current_ratio": 0.19,
+      "tier": "D"
+    },
+    "PNW": {
+      "debt_equity": 2.53,
+      "current_ratio": 0.49,
+      "tier": "E"
+    },
+    "PODD": {
+      "debt_equity": 0.69,
+      "current_ratio": 2.78,
+      "tier": "B"
+    },
+    "POOL": {
+      "debt_equity": 0.29,
+      "current_ratio": 2.24,
+      "tier": "A"
+    },
+    "POR": {
+      "debt_equity": 1.34,
+      "current_ratio": 1.08,
+      "tier": "D"
+    },
+    "POST": {
+      "debt_equity": 2.05,
+      "current_ratio": 1.67,
+      "tier": "E"
+    },
+    "POWI": {
+      "debt_equity": 0.0,
+      "current_ratio": 6.51,
+      "tier": "A"
+    },
+    "POWL": {
+      "debt_equity": 0.0,
+      "current_ratio": 2.09,
+      "tier": "A"
+    },
+    "PPBI": {
+      "debt_equity": 0.09,
+      "current_ratio": 0.1,
+      "tier": "D"
+    },
+    "PPG": {
+      "debt_equity": 999,
+      "current_ratio": 1.62,
+      "tier": "F"
+    },
+    "PPL": {
+      "debt_equity": 1.3,
+      "current_ratio": 0.86,
+      "tier": "D"
+    },
+    "PRCT": {
+      "debt_equity": 0.14,
+      "current_ratio": 6.85,
+      "tier": "A"
+    },
+    "PRGS": {
+      "debt_equity": 1.78,
+      "current_ratio": 0.49,
+      "tier": "D"
+    },
+    "PRI": {
+      "debt_equity": 0.74,
+      "current_ratio": 5.41,
+      "tier": "B"
+    },
+    "PRIM": {
+      "debt_equity": 0.76,
+      "current_ratio": 1.26,
+      "tier": "C"
+    },
+    "PRU": {
+      "debt_equity": 1.03,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "PRXL": {
+      "debt_equity": 1.06,
+      "current_ratio": 1.45,
+      "tier": "D"
+    },
+    "PSA": {
+      "debt_equity": 1.11,
+      "current_ratio": 0.75,
+      "tier": "D"
+    },
+    "PSX": {
+      "debt_equity": 0.79,
+      "current_ratio": 1.3,
+      "tier": "C"
+    },
+    "PTC": {
+      "debt_equity": 0.36,
+      "current_ratio": 1.12,
+      "tier": "D"
+    },
+    "PTEN": {
+      "debt_equity": 0.4,
+      "current_ratio": 1.64,
+      "tier": "B"
+    },
+    "PUBM": {
+      "debt_equity": 0.17,
+      "current_ratio": 1.39,
+      "tier": "C"
+    },
+    "PUMP": {
+      "debt_equity": 0.3,
+      "current_ratio": 1.29,
+      "tier": "C"
+    },
+    "PWR": {
+      "debt_equity": 0.13,
+      "current_ratio": 1.14,
+      "tier": "D"
+    },
+    "PYPL": {
+      "debt_equity": 0.49,
+      "current_ratio": 1.29,
+      "tier": "C"
+    },
+    "QCOM": {
+      "debt_equity": 0.77,
+      "current_ratio": 2.82,
+      "tier": "B"
+    },
+    "QLYS": {
+      "debt_equity": 0.17,
+      "current_ratio": 1.41,
+      "tier": "C"
+    },
+    "QNST": {
+      "debt_equity": 0.04,
+      "current_ratio": 1.51,
+      "tier": "B"
+    },
+    "QS": {
+      "debt_equity": 0.06,
+      "current_ratio": 15.95,
+      "tier": "A"
+    },
+    "RARE": {
+      "debt_equity": 999,
+      "current_ratio": 2.48,
+      "tier": "F"
+    },
+    "RBC": {
+      "debt_equity": 0.34,
+      "current_ratio": 3.26,
+      "tier": "A"
+    },
+    "RBLX": {
+      "debt_equity": 4.15,
+      "current_ratio": 0.96,
+      "tier": "F"
+    },
+    "RCKT": {
+      "debt_equity": 0.09,
+      "current_ratio": 6.38,
+      "tier": "A"
+    },
+    "RCL": {
+      "debt_equity": 2.26,
+      "current_ratio": 0.18,
+      "tier": "E"
+    },
+    "RDNT": {
+      "debt_equity": 1.71,
+      "current_ratio": 1.76,
+      "tier": "D"
+    },
+    "RDW": {
+      "debt_equity": 0.22,
+      "current_ratio": 1.62,
+      "tier": "B"
+    },
+    "RE": {
+      "debt_equity": 0.0,
+      "current_ratio": 10.97,
+      "tier": "A"
+    },
+    "REG": {
+      "debt_equity": 0.86,
+      "current_ratio": 1.05,
+      "tier": "D"
+    },
+    "REGN": {
+      "debt_equity": 0.09,
+      "current_ratio": 4.13,
+      "tier": "A"
+    },
+    "REI": {
+      "debt_equity": 0.51,
+      "current_ratio": 0.61,
+      "tier": "D"
+    },
+    "RES": {
+      "debt_equity": 0.09,
+      "current_ratio": 3.24,
+      "tier": "A"
+    },
+    "REVG": {
+      "debt_equity": 0.13,
+      "current_ratio": 1.51,
+      "tier": "B"
+    },
+    "REXR": {
+      "debt_equity": 0.41,
+      "current_ratio": 7.16,
+      "tier": "A"
+    },
+    "RF": {
+      "debt_equity": 0.26,
+      "current_ratio": 0.3,
+      "tier": "D"
+    },
+    "RFP": {
+      "debt_equity": 0.24,
+      "current_ratio": 2.29,
+      "tier": "A"
+    },
+    "RGEN": {
+      "debt_equity": 0.33,
+      "current_ratio": 8.37,
+      "tier": "A"
+    },
+    "RGS": {
+      "debt_equity": 1.89,
+      "current_ratio": 0.5,
+      "tier": "D"
+    },
+    "RGTI": {
+      "debt_equity": 0.01,
+      "current_ratio": 37.42,
+      "tier": "A"
+    },
+    "RH": {
+      "debt_equity": 23.5,
+      "current_ratio": 1.19,
+      "tier": "F"
+    },
+    "RHP": {
+      "debt_equity": 5.72,
+      "current_ratio": 73.13,
+      "tier": "F"
+    },
+    "RIO": {
+      "debt_equity": 0.4,
+      "current_ratio": 1.44,
+      "tier": "C"
+    },
+    "RIOT": {
+      "debt_equity": 0.1,
+      "current_ratio": 0.96,
+      "tier": "D"
+    },
+    "RIVN": {
+      "debt_equity": 1.46,
+      "current_ratio": 2.33,
+      "tier": "D"
+    },
+    "RJF": {
+      "debt_equity": 0.36,
+      "current_ratio": 0.32,
+      "tier": "D"
+    },
+    "RKLB": {
+      "debt_equity": 0.15,
+      "current_ratio": 4.08,
+      "tier": "A"
+    },
+    "RL": {
+      "debt_equity": 1.03,
+      "current_ratio": 1.78,
+      "tier": "D"
+    },
+    "RLI": {
+      "debt_equity": 0.06,
+      "current_ratio": 1.33,
+      "tier": "C"
+    },
+    "RMBS": {
+      "debt_equity": 0.03,
+      "current_ratio": 8.2,
+      "tier": "A"
+    },
+    "RMD": {
+      "debt_equity": 0.14,
+      "current_ratio": 3.44,
+      "tier": "A"
+    },
+    "RNR": {
+      "debt_equity": 0.2,
+      "current_ratio": 5.03,
+      "tier": "A"
+    },
+    "ROCK": {
+      "debt_equity": 0.11,
+      "current_ratio": 1.72,
+      "tier": "B"
+    },
+    "ROK": {
+      "debt_equity": 1.0,
+      "current_ratio": 1.14,
+      "tier": "D"
+    },
+    "ROKU": {
+      "debt_equity": 0.33,
+      "current_ratio": 2.75,
+      "tier": "A"
+    },
+    "ROP": {
+      "debt_equity": 0.47,
+      "current_ratio": 0.52,
+      "tier": "D"
+    },
+    "ROST": {
+      "debt_equity": 0.84,
+      "current_ratio": 1.58,
+      "tier": "B"
+    },
+    "RRC": {
+      "debt_equity": 0.29,
+      "current_ratio": 0.67,
+      "tier": "D"
+    },
+    "RRR": {
+      "debt_equity": 0.28,
+      "current_ratio": 0.79,
+      "tier": "D"
+    },
+    "RS": {
+      "debt_equity": 0.28,
+      "current_ratio": 4.88,
+      "tier": "A"
+    },
+    "RSG": {
+      "debt_equity": 0.05,
+      "current_ratio": 0.64,
+      "tier": "D"
+    },
+    "RTX": {
+      "debt_equity": 0.61,
+      "current_ratio": 1.03,
+      "tier": "D"
+    },
+    "RUN": {
+      "debt_equity": 4.75,
+      "current_ratio": 1.66,
+      "tier": "F"
+    },
+    "RUTH": {
+      "debt_equity": 2.01,
+      "current_ratio": 0.59,
+      "tier": "E"
+    },
+    "RVMD": {
+      "debt_equity": 0.1,
+      "current_ratio": 7.14,
+      "tier": "A"
+    },
+    "RVTY": {
+      "debt_equity": 0.48,
+      "current_ratio": 1.68,
+      "tier": "B"
+    },
+    "RXO": {
+      "debt_equity": 0.56,
+      "current_ratio": 1.27,
+      "tier": "C"
+    },
+    "RYAM": {
+      "debt_equity": 2.46,
+      "current_ratio": 0.21,
+      "tier": "E"
+    },
+    "SAFE": {
+      "debt_equity": 1.87,
+      "current_ratio": 17.86,
+      "tier": "D"
+    },
+    "SAH": {
+      "debt_equity": 3.96,
+      "current_ratio": 1.09,
+      "tier": "F"
+    },
+    "SAIA": {
+      "debt_equity": 0.16,
+      "current_ratio": 1.64,
+      "tier": "B"
+    },
+    "SAM": {
+      "debt_equity": 0.04,
+      "current_ratio": 1.65,
+      "tier": "B"
+    },
+    "SAN": {
+      "debt_equity": 4.82,
+      "current_ratio": 1.25,
+      "tier": "F"
+    },
+    "SANM": {
+      "debt_equity": 0.17,
+      "current_ratio": 1.72,
+      "tier": "B"
+    },
+    "SAP": {
+      "debt_equity": 0.18,
+      "current_ratio": 1.17,
+      "tier": "D"
+    },
+    "SASR": {
+      "debt_equity": 0.4,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "SBAC": {
+      "debt_equity": 999,
+      "current_ratio": 0.49,
+      "tier": "F"
+    },
+    "SBCF": {
+      "debt_equity": 0.44,
+      "current_ratio": 0.4,
+      "tier": "D"
+    },
+    "SBOW": {
+      "debt_equity": 1.02,
+      "current_ratio": 1.05,
+      "tier": "D"
+    },
+    "SBSI": {
+      "debt_equity": 0.87,
+      "current_ratio": 0.23,
+      "tier": "D"
+    },
+    "SBUX": {
+      "debt_equity": 999,
+      "current_ratio": 0.72,
+      "tier": "F"
+    },
+    "SCCO": {
+      "debt_equity": 0.67,
+      "current_ratio": 3.89,
+      "tier": "B"
+    },
+    "SCHL": {
+      "debt_equity": 0.4,
+      "current_ratio": 1.16,
+      "tier": "D"
+    },
+    "SCHW": {
+      "debt_equity": 0.65,
+      "current_ratio": 17.83,
+      "tier": "B"
+    },
+    "SCI": {
+      "debt_equity": 3.14,
+      "current_ratio": 0.55,
+      "tier": "F"
+    },
+    "SCL": {
+      "debt_equity": 0.56,
+      "current_ratio": 1.29,
+      "tier": "C"
+    },
+    "SCVL": {
+      "debt_equity": 0.54,
+      "current_ratio": 3.76,
+      "tier": "B"
+    },
+    "SE": {
+      "debt_equity": 0.27,
+      "current_ratio": 1.58,
+      "tier": "B"
+    },
+    "SEDG": {
+      "debt_equity": 0.99,
+      "current_ratio": 2.17,
+      "tier": "B"
+    },
+    "SEE": {
+      "debt_equity": 3.31,
+      "current_ratio": 0.91,
+      "tier": "F"
+    },
+    "SENEA": {
+      "debt_equity": 0.59,
+      "current_ratio": 3.52,
+      "tier": "B"
+    },
+    "SFBS": {
+      "debt_equity": 0.81,
+      "current_ratio": 0.28,
+      "tier": "D"
+    },
+    "SFNC": {
+      "debt_equity": 0.19,
+      "current_ratio": 0.86,
+      "tier": "D"
+    },
+    "SGEN": {
+      "debt_equity": 0.02,
+      "current_ratio": 2.12,
+      "tier": "A"
+    },
+    "SGH": {
+      "debt_equity": 1.28,
+      "current_ratio": 2.25,
+      "tier": "D"
+    },
+    "SGRY": {
+      "debt_equity": 2.35,
+      "current_ratio": 1.87,
+      "tier": "E"
+    },
+    "SHAK": {
+      "debt_equity": 1.72,
+      "current_ratio": 1.76,
+      "tier": "D"
+    },
+    "SHOO": {
+      "debt_equity": 0.56,
+      "current_ratio": 1.9,
+      "tier": "B"
+    },
+    "SHOP": {
+      "debt_equity": 0.03,
+      "current_ratio": 5.92,
+      "tier": "A"
+    },
+    "SHW": {
+      "debt_equity": 3.16,
+      "current_ratio": 0.87,
+      "tier": "F"
+    },
+    "SIG": {
+      "debt_equity": 0.62,
+      "current_ratio": 1.59,
+      "tier": "B"
+    },
+    "SIGI": {
+      "debt_equity": 0.25,
+      "current_ratio": 650.38,
+      "tier": "A"
+    },
+    "SIRI": {
+      "debt_equity": 0.84,
+      "current_ratio": 0.3,
+      "tier": "D"
+    },
+    "SITE": {
+      "debt_equity": 0.59,
+      "current_ratio": 2.47,
+      "tier": "B"
+    },
+    "SJM": {
+      "debt_equity": 1.28,
+      "current_ratio": 0.81,
+      "tier": "D"
+    },
+    "SJW": {
+      "debt_equity": 0.02,
+      "current_ratio": 2.25,
+      "tier": "A"
+    },
+    "SKT": {
+      "debt_equity": 3.87,
+      "current_ratio": 0.02,
+      "tier": "F"
+    },
+    "SKX": {
+      "debt_equity": 0.45,
+      "current_ratio": 1.97,
+      "tier": "B"
+    },
+    "SLAB": {
+      "debt_equity": 0.0,
+      "current_ratio": 4.69,
+      "tier": "A"
+    },
+    "SLB": {
+      "debt_equity": 0.47,
+      "current_ratio": 1.33,
+      "tier": "C"
+    },
+    "SLG": {
+      "debt_equity": 2.06,
+      "current_ratio": 1.03,
+      "tier": "E"
+    },
+    "SLP": {
+      "debt_equity": 0.0,
+      "current_ratio": 7.67,
+      "tier": "A"
+    },
+    "SLVM": {
+      "debt_equity": 0.88,
+      "current_ratio": 1.5,
+      "tier": "B"
+    },
+    "SM": {
+      "debt_equity": 0.48,
+      "current_ratio": 0.69,
+      "tier": "D"
+    },
+    "SMCI": {
+      "debt_equity": 0.76,
+      "current_ratio": 5.25,
+      "tier": "B"
+    },
+    "SMPL": {
+      "debt_equity": 0.17,
+      "current_ratio": 3.64,
+      "tier": "A"
+    },
+    "SMTC": {
+      "debt_equity": 0.89,
+      "current_ratio": 2.37,
+      "tier": "B"
+    },
+    "SNA": {
+      "debt_equity": 0.22,
+      "current_ratio": 4.79,
+      "tier": "A"
+    },
+    "SNAP": {
+      "debt_equity": 2.06,
+      "current_ratio": 3.56,
+      "tier": "E"
+    },
+    "SNBR": {
+      "debt_equity": 999,
+      "current_ratio": 0.16,
+      "tier": "F"
+    },
+    "SNOW": {
+      "debt_equity": 1.42,
+      "current_ratio": 1.3,
+      "tier": "D"
+    },
+    "SNPS": {
+      "debt_equity": 0.5,
+      "current_ratio": 1.62,
+      "tier": "B"
+    },
+    "SNV": {
+      "debt_equity": 0.36,
+      "current_ratio": 0.22,
+      "tier": "D"
+    },
+    "SO": {
+      "debt_equity": 1.83,
+      "current_ratio": 0.65,
+      "tier": "D"
+    },
+    "SOFI": {
+      "debt_equity": 0.17,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "SOLV": {
+      "debt_equity": 1.0,
+      "current_ratio": 1.23,
+      "tier": "C"
+    },
+    "SON": {
+      "debt_equity": 1.34,
+      "current_ratio": 1.05,
+      "tier": "D"
+    },
+    "SONY": {
+      "debt_equity": 0.51,
+      "current_ratio": 0.7,
+      "tier": "D"
+    },
+    "SPG": {
+      "debt_equity": 5.6,
+      "current_ratio": 0.16,
+      "tier": "F"
+    },
+    "SPGI": {
+      "debt_equity": 0.45,
+      "current_ratio": 0.82,
+      "tier": "D"
+    },
+    "SPKE": {
+      "debt_equity": 0.0,
+      "current_ratio": 2.55,
+      "tier": "A"
+    },
+    "SPR": {
+      "debt_equity": 999,
+      "current_ratio": 1.05,
+      "tier": "F"
+    },
+    "SPSC": {
+      "debt_equity": 0.01,
+      "current_ratio": 1.74,
+      "tier": "B"
+    },
+    "SPTN": {
+      "debt_equity": 1.49,
+      "current_ratio": 1.57,
+      "tier": "D"
+    },
+    "SQ": {
+      "debt_equity": 0.11,
+      "current_ratio": -0.18,
+      "tier": "D"
+    },
+    "SR": {
+      "debt_equity": 1.55,
+      "current_ratio": 0.32,
+      "tier": "D"
+    },
+    "SRC": {
+      "debt_equity": 0.78,
+      "current_ratio": 0.3,
+      "tier": "D"
+    },
+    "SRCL": {
+      "debt_equity": 0.71,
+      "current_ratio": 0.94,
+      "tier": "D"
+    },
+    "SRDX": {
+      "debt_equity": 0.28,
+      "current_ratio": 3.96,
+      "tier": "A"
+    },
+    "SRE": {
+      "debt_equity": 1.15,
+      "current_ratio": 1.59,
+      "tier": "D"
+    },
+    "SRPT": {
+      "debt_equity": 0.91,
+      "current_ratio": 2.32,
+      "tier": "B"
+    },
+    "SSB": {
+      "debt_equity": 0.15,
+      "current_ratio": 0.22,
+      "tier": "D"
+    },
+    "SSD": {
+      "debt_equity": 0.24,
+      "current_ratio": 3.54,
+      "tier": "A"
+    },
+    "STAG": {
+      "debt_equity": 0.92,
+      "current_ratio": 0.41,
+      "tier": "D"
+    },
+    "STBA": {
+      "debt_equity": 0.21,
+      "current_ratio": 6.98,
+      "tier": "A"
+    },
+    "STLD": {
+      "debt_equity": 0.47,
+      "current_ratio": 3.06,
+      "tier": "A"
+    },
+    "STOR": {
+      "debt_equity": 0.0,
+      "current_ratio": 9.67,
+      "tier": "A"
+    },
+    "STRA": {
+      "debt_equity": 0.07,
+      "current_ratio": 1.27,
+      "tier": "C"
+    },
+    "STT": {
+      "debt_equity": 1.07,
+      "current_ratio": 0.68,
+      "tier": "D"
+    },
+    "STX": {
+      "debt_equity": 999,
+      "current_ratio": 1.38,
+      "tier": "F"
+    },
+    "STZ": {
+      "debt_equity": 1.76,
+      "current_ratio": 0.92,
+      "tier": "D"
+    },
+    "SUI": {
+      "debt_equity": 0.26,
+      "current_ratio": 0.38,
+      "tier": "D"
+    },
+    "SUPN": {
+      "debt_equity": 0.04,
+      "current_ratio": 1.9,
+      "tier": "B"
+    },
+    "SWK": {
+      "debt_equity": 0.65,
+      "current_ratio": 1.14,
+      "tier": "D"
+    },
+    "SWKS": {
+      "debt_equity": 0.21,
+      "current_ratio": 2.33,
+      "tier": "A"
+    },
+    "SWM": {
+      "debt_equity": 2.15,
+      "current_ratio": 2.24,
+      "tier": "E"
+    },
+    "SWN": {
+      "debt_equity": 0.7,
+      "current_ratio": 0.82,
+      "tier": "D"
+    },
+    "SWX": {
+      "debt_equity": 0.89,
+      "current_ratio": 1.28,
+      "tier": "C"
+    },
+    "UFCS": {
+      "debt_equity": 0.18,
+      "current_ratio": 0.06,
+      "tier": "D"
+    },
+    "UFPI": {
+      "debt_equity": 0.07,
+      "current_ratio": 4.59,
+      "tier": "A"
+    },
+    "UFPT": {
+      "debt_equity": 0.36,
+      "current_ratio": 2.68,
+      "tier": "A"
+    },
+    "ULTA": {
+      "debt_equity": 0.78,
+      "current_ratio": 1.41,
+      "tier": "C"
+    },
+    "UNH": {
+      "debt_equity": 0.83,
+      "current_ratio": 0.79,
+      "tier": "D"
+    },
+    "UNP": {
+      "debt_equity": 1.72,
+      "current_ratio": 0.91,
+      "tier": "D"
+    },
+    "UPS": {
+      "debt_equity": 1.99,
+      "current_ratio": 1.22,
+      "tier": "D"
+    },
+    "UPST": {
+      "debt_equity": 2.32,
+      "current_ratio": 2.99,
+      "tier": "E"
+    },
+    "URBN": {
+      "debt_equity": 0.44,
+      "current_ratio": 1.51,
+      "tier": "B"
+    },
+    "USB": {
+      "debt_equity": 1.2,
+      "current_ratio": 0.26,
+      "tier": "D"
+    },
+    "USFD": {
+      "debt_equity": 1.33,
+      "current_ratio": 1.16,
+      "tier": "D"
+    },
+    "USM": {
+      "debt_equity": 0.21,
+      "current_ratio": 1.73,
+      "tier": "B"
+    },
+    "UTL": {
+      "debt_equity": 1.54,
+      "current_ratio": 0.56,
+      "tier": "D"
+    },
+    "UVSP": {
+      "debt_equity": 0.37,
+      "current_ratio": 0.08,
+      "tier": "D"
+    },
+    "UVV": {
+      "debt_equity": 0.76,
+      "current_ratio": 2.87,
+      "tier": "B"
+    },
+    "V": {
+      "debt_equity": 0.66,
+      "current_ratio": 1.08,
+      "tier": "D"
+    },
+    "VALE": {
+      "debt_equity": 0.58,
+      "current_ratio": 1.15,
+      "tier": "D"
+    },
+    "VCEL": {
+      "debt_equity": 0.28,
+      "current_ratio": 5.03,
+      "tier": "A"
+    },
+    "VERX": {
+      "debt_equity": 1.39,
+      "current_ratio": 0.98,
+      "tier": "D"
+    },
+    "VIAV": {
+      "debt_equity": 0.89,
+      "current_ratio": 1.5,
+      "tier": "B"
+    },
+    "VLO": {
+      "debt_equity": 0.45,
+      "current_ratio": 3.37,
+      "tier": "A"
+    },
+    "VMC": {
+      "debt_equity": 0.63,
+      "current_ratio": 2.69,
+      "tier": "B"
+    },
+    "VNOM": {
+      "debt_equity": 0.49,
+      "current_ratio": 3.72,
+      "tier": "A"
+    },
+    "VNT": {
+      "debt_equity": 1.72,
+      "current_ratio": 1.16,
+      "tier": "D"
+    },
+    "VRE": {
+      "debt_equity": 1.19,
+      "current_ratio": 0.08,
+      "tier": "D"
+    },
+    "VRNS": {
+      "debt_equity": 0.96,
+      "current_ratio": 1.97,
+      "tier": "B"
+    },
+    "VRSK": {
+      "debt_equity": 16.3,
+      "current_ratio": 1.2,
+      "tier": "F"
+    },
+    "VRSN": {
+      "debt_equity": 999,
+      "current_ratio": 0.49,
+      "tier": "F"
+    },
+    "VRTX": {
+      "debt_equity": 0.21,
+      "current_ratio": 2.9,
+      "tier": "A"
+    },
+    "VSEC": {
+      "debt_equity": 0.24,
+      "current_ratio": 3.76,
+      "tier": "A"
+    },
+    "VTR": {
+      "debt_equity": 1.06,
+      "current_ratio": 0.96,
+      "tier": "D"
+    },
+    "VTRS": {
+      "debt_equity": 1.0,
+      "current_ratio": 1.3,
+      "tier": "C"
+    },
+    "VVV": {
+      "debt_equity": 4.93,
+      "current_ratio": 0.7,
+      "tier": "F"
+    },
+    "VZ": {
+      "debt_equity": 1.92,
+      "current_ratio": 0.91,
+      "tier": "D"
+    },
+    "WAB": {
+      "debt_equity": 0.5,
+      "current_ratio": 1.11,
+      "tier": "D"
+    },
+    "WABC": {
+      "debt_equity": 0.17,
+      "current_ratio": 33.06,
+      "tier": "A"
+    },
+    "WASH": {
+      "debt_equity": 1.34,
+      "current_ratio": 0.01,
+      "tier": "D"
+    },
+    "WBA": {
+      "debt_equity": 3.23,
+      "current_ratio": 0.68,
+      "tier": "F"
+    },
+    "WBD": {
+      "debt_equity": 0.91,
+      "current_ratio": 1.06,
+      "tier": "D"
+    },
+    "WBS": {
+      "debt_equity": 0.45,
+      "current_ratio": 0.41,
+      "tier": "D"
+    },
+    "WDC": {
+      "debt_equity": 0.96,
+      "current_ratio": 1.08,
+      "tier": "D"
+    },
+    "WDFC": {
+      "debt_equity": 0.36,
+      "current_ratio": 2.79,
+      "tier": "A"
+    },
+    "WEC": {
+      "debt_equity": 1.64,
+      "current_ratio": 0.47,
+      "tier": "D"
+    },
+    "WELL": {
+      "debt_equity": 0.51,
+      "current_ratio": 5.34,
+      "tier": "B"
+    },
+    "WEX": {
+      "debt_equity": 3.94,
+      "current_ratio": 1.05,
+      "tier": "F"
+    },
+    "WFC": {
+      "debt_equity": 2.35,
+      "current_ratio": 0.29,
+      "tier": "E"
+    },
+    "WFRD": {
+      "debt_equity": 1.03,
+      "current_ratio": 2.19,
+      "tier": "D"
+    },
+    "WH": {
+      "debt_equity": 6.53,
+      "current_ratio": 0.71,
+      "tier": "F"
+    },
+    "WING": {
+      "debt_equity": 999,
+      "current_ratio": 3.26,
+      "tier": "F"
+    },
+    "WLY": {
+      "debt_equity": 1.2,
+      "current_ratio": 0.54,
+      "tier": "D"
+    },
+    "WM": {
+      "debt_equity": 2.29,
+      "current_ratio": 0.89,
+      "tier": "E"
+    },
+    "WMB": {
+      "debt_equity": 2.29,
+      "current_ratio": 0.53,
+      "tier": "E"
+    },
+    "WMT": {
+      "debt_equity": 0.67,
+      "current_ratio": 0.79,
+      "tier": "D"
+    },
+    "WNC": {
+      "debt_equity": 1.21,
+      "current_ratio": 1.39,
+      "tier": "D"
+    },
+    "WOR": {
+      "debt_equity": 0.35,
+      "current_ratio": 3.48,
+      "tier": "A"
+    },
+    "WPM": {
+      "debt_equity": 0.0,
+      "current_ratio": 7.78,
+      "tier": "A"
+    },
+    "WRB": {
+      "debt_equity": 0.29,
+      "current_ratio": 1.39,
+      "tier": "C"
+    },
+    "WRE": {
+      "debt_equity": 0.0,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "WRK": {
+      "debt_equity": 0.97,
+      "current_ratio": 1.42,
+      "tier": "C"
+    },
+    "WSBC": {
+      "debt_equity": 0.41,
+      "current_ratio": 0.25,
+      "tier": "D"
+    },
+    "WSFS": {
+      "debt_equity": 0.11,
+      "current_ratio": 0.08,
+      "tier": "D"
+    },
+    "WSM": {
+      "debt_equity": 0.7,
+      "current_ratio": 1.39,
+      "tier": "C"
+    },
+    "WTFC": {
+      "debt_equity": 0.62,
+      "current_ratio": 0.14,
+      "tier": "D"
+    },
+    "WTI": {
+      "debt_equity": 999,
+      "current_ratio": 1.02,
+      "tier": "F"
+    },
+    "WTS": {
+      "debt_equity": 0.1,
+      "current_ratio": 2.51,
+      "tier": "A"
+    },
+    "WTTR": {
+      "debt_equity": 0.46,
+      "current_ratio": 1.57,
+      "tier": "B"
+    },
+    "WWW": {
+      "debt_equity": 1.87,
+      "current_ratio": 1.4,
+      "tier": "D"
+    },
+    "WY": {
+      "debt_equity": 0.59,
+      "current_ratio": 1.29,
+      "tier": "C"
+    },
+    "WYNN": {
+      "debt_equity": 999,
+      "current_ratio": 1.63,
+      "tier": "F"
+    },
+    "XEL": {
+      "debt_equity": 1.47,
+      "current_ratio": 0.71,
+      "tier": "D"
+    },
+    "XHR": {
+      "debt_equity": 1.27,
+      "current_ratio": 0,
+      "tier": "D"
+    },
+    "XNCR": {
+      "debt_equity": 0.3,
+      "current_ratio": 6.25,
+      "tier": "A"
+    },
+    "XOM": {
+      "debt_equity": 0.17,
+      "current_ratio": 1.15,
+      "tier": "D"
+    },
+    "XPEV": {
+      "debt_equity": 1.23,
+      "current_ratio": 1.09,
+      "tier": "D"
+    },
+    "XRAY": {
+      "debt_equity": 1.84,
+      "current_ratio": 1.51,
+      "tier": "D"
+    },
+    "XYL": {
+      "debt_equity": 0.17,
+      "current_ratio": 1.62,
+      "tier": "B"
+    },
+    "YELP": {
+      "debt_equity": 0.06,
+      "current_ratio": 2.99,
+      "tier": "A"
+    },
+    "YUM": {
+      "debt_equity": 999,
+      "current_ratio": 1.35,
+      "tier": "F"
+    },
+    "ZBRA": {
+      "debt_equity": 0.78,
+      "current_ratio": 0.97,
+      "tier": "D"
+    },
+    "ZD": {
+      "debt_equity": 0.51,
+      "current_ratio": 1.27,
+      "tier": "C"
+    },
+    "ZION": {
+      "debt_equity": 0.61,
+      "current_ratio": 0.16,
+      "tier": "D"
+    },
+    "ZS": {
+      "debt_equity": 1.0,
+      "current_ratio": 2.01,
+      "tier": "B"
+    },
+    "ZTS": {
+      "debt_equity": 2.85,
+      "current_ratio": 3.03,
+      "tier": "E"
+    },
+    "ZUO": {
+      "debt_equity": 3.02,
+      "current_ratio": 2.43,
+      "tier": "F"
+    }
+  }
+}

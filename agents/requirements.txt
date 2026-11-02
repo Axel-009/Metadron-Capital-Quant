@@ -1,0 +1,4 @@
+# Agent jobs (GitHub Actions). The algorithm itself runs on QuantConnect and needs none of these.
+anthropic>=0.40
+numpy
+pandas

@@ -1,0 +1,27 @@
+# 12:20 UTC on weekdays = 08:20 New York in summer, 07:20 in winter — before the 09:31 heartbeat.
+name: agents-premarket
+on:
+  schedule: [{cron: "20 12 * * 1-5"}]
+  workflow_dispatch:
+jobs:
+  agents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      QC_USER_ID: ${{ secrets.QC_USER_ID }}
+      QC_API_TOKEN: ${{ secrets.QC_API_TOKEN }}
+      QC_ORG_ID: ${{ secrets.QC_ORG_ID }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r agents/requirements.txt
+      - name: macro agent (FRED readings, GMTF, scenarios)
+        run: python agents/macro_agent.py
+      - name: events agent (SEC 8-K, earnings dates, escalation)
+        run: python agents/events_agent.py
+      - uses: actions/upload-artifact@v4
+        with: {name: agent-outputs, path: agents/out/, retention-days: 30}

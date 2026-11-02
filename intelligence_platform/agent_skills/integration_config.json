@@ -1,0 +1,27 @@
+{
+  "source": "axel-009/claude-cookbooks",
+  "integrated_date": "2026-03-24",
+  "moved_to_platform": "2026-03-25",
+  "skills_integrated": [
+    "analyzing-financial-statements",
+    "creating-financial-models"
+  ],
+  "agent_patterns_integrated": [
+    "orchestrator_workers",
+    "evaluator_optimizer"
+  ],
+  "target_agents": [
+    "sector_bots",
+    "research_bots",
+    "investor_personas",
+    "gics_sector_agents",
+    "paul_orchestrator",
+    "ruflo_agents"
+  ],
+  "integration_points": {
+    "financial_analysis": "engine/signals/security_analysis_engine.py",
+    "ml_evaluation": "engine/ml/model_evaluator.py",
+    "agent_orchestration": "engine/agents/paul_orchestrator.py",
+    "ruflo_config": "intelligence_platform/Ruflo-agents/.agents/config.toml"
+  }
+}

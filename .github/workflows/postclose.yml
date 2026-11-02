@@ -1,0 +1,35 @@
+# 21:40 UTC on weekdays = 17:40 New York in summer, 16:40 in winter.
+# Writes the Obsidian vault, commits it, and fails (→ GitHub e-mails the owner) when the risk officer raises alerts.
+name: agents-postclose
+on:
+  schedule: [{cron: "40 21 * * 1-5"}]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      QC_USER_ID: ${{ secrets.QC_USER_ID }}
+      QC_API_TOKEN: ${{ secrets.QC_API_TOKEN }}
+      QC_ORG_ID: ${{ secrets.QC_ORG_ID }}
+      IBKR_FLEX_TOKEN: ${{ secrets.IBKR_FLEX_TOKEN }}
+      IBKR_FLEX_QUERY_ID: ${{ secrets.IBKR_FLEX_QUERY_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: python agents/vault_sync.py
+      - id: risk
+        run: python agents/risk_officer.py
+        continue-on-error: true
+      - name: commit vault
+        run: |
+          git config user.name "metadron-bot"
+          git config user.email "metadron-bot@users.noreply.github.com"
+          git add vault
+          git diff --cached --quiet || git commit -m "vault: $(date -u +%F)"
+          git push
+      - if: steps.risk.outcome == 'failure'
+        run: echo "Risk officer raised alerts — see vault/Risk/" && exit 1
