@@ -269,14 +269,14 @@ beta-hedged to zero, and above it total market beta ≈ sleeves' ≈ 0.7 + ≤ 2
 
 ### Feed guard + live data (code: `algorithm/feed_guard.py`; owner threat model: a delayed, cut or altered feed)
 
-Live data: **Tradier** (token, no session to keep alive, no market-data-line limit) for stocks and options; **IBKR**
-for MES futures and execution (use a separate IBKR username for QuantConnect). Two providers on two venues, so
-delaying both consistently is hard and a one-sided delay shows up as a SPY/MES mismatch.
+Phase 1: IBKR **paper** account for execution (separate IBKR username for QuantConnect); live prices from Tradier
+(token) or QuantConnect's feed. Cross-feed reference = the S&P 500 index (SPX) vs SPY; phase 2 adds MES (CME, IBKR
+feed) as the reference.
 
 | Defence | Rule |
 |---------|------|
 | Staleness | SPY and MES last bar ≤ 5 min, held names ≤ 15 min (daily backtests: multi-day gaps only) |
-| Cross-feed | MES/SPY ratio within 0.5% of its rolling median; a one-sided > 3% jump between checks |
+| Cross-feed | reference/SPY ratio within 0.5% of its rolling median (phase 1 SPX index, phase 2 MES); a one-sided > 3% jump between checks |
 | Halt | any failure → no new entries, no leverage increases, no options entries, no market-on-close; reductions only, collared; clears after 2 clean checks |
 | Collars | every stock / ETF / futures order is a limit order within 30 bps (futures 20 bps) of the last trusted price |
 | Broker-side stops | resting GTC stops at IBKR: long stocks at peak −10%, MES at the adverse move costing ≈ 8% NAV (2–10%); they execute even if the feed or the algorithm is cut. A name's stop is cancelled before any trade on it and re-placed once no order is working (never stop + sell → short); re-placed only when the level moves > 2% |
@@ -450,9 +450,9 @@ Code: `engine/allocation/allocation_engine.py` (`AllocationRules`) — THE refer
 | TLTW / cash-flow ETFs | 15 | income ETFs (+ GLD/DBC when bonds stop hedging) |
 | FI / macro | 5 | TLT / IEF / SHY |
 | Options premium | 10 | long options on the single names (+ hedges); per credit sleeve IG 4 · HY 4 · distressed 2 |
-| Futures | margin, not a bucket | MES overlay = corridor L − sleeve beta, **capped at ±2.0× NAV notional** (owner); initial margin ≈ 7% of notional (≤ ≈ 14% NAV), financed by account margin |
+| Futures | **PHASE 2 — off** | MES overlay = corridor L − sleeve beta, capped at ±2.0× NAV notional; code kept (`main._set_beta_leverage`, `risk_budget.MAX_FUTURES_LEVERAGE`, futures stops in `feed_guard`). Enable with `beta_instrument=MES`. Phase 1: corridor L is computed, plotted and reported (`overlay_phase2`) but not traded; market beta comes from the stock sleeves only |
 
-Owner update (Nov 2026): futures overlay capped at 2.0× NAV; money market removed; options = 10% of NAV in premium (was 25% notional funded by the
+Owner update (Nov 2026): MES futures overlay moved to PHASE 2 (off; phase-2 cap 2.0× NAV); money market removed; options = 10% of NAV in premium (was 25% notional funded by the
 8% margin bucket); no IG cut for futures margin. Mirrored in `AllocationRules`.
 
 Older summary table (pre-code, superseded where it differs):

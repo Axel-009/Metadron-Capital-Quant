@@ -58,3 +58,13 @@ def test_risk_officer_out_of_band_audit():
     halted = ro.feed_findings({"feed": {"ok": False, "reasons": ["MES: stale 12 min"]}}, dt.date(2026, 11, 3),
                               reference=lambda t, d: None)
     assert halted and "HALTED" in halted[0]
+
+
+def test_phase1_reference_is_the_spx_index():
+    g = fg.FeedGuard()
+    for i in range(10):
+        g.check(i, {"SPY": i, "SPX": i}, 500.0, 5000.0, "SPX")
+    st = g.check(10, {"SPY": 10, "SPX": 10}, 500.0, 5000.0 * 1.01, "SPX")
+    assert not st.ok and any("SPY/SPX basis" in r for r in st.reasons)
+    st = fg.FeedGuard().check(10, {"SPY": 10, "SPX": 2}, 500.0, 5000.0, "SPX")
+    assert any("SPX: stale" in r for r in st.reasons)                       # reference held to the 5-min rule

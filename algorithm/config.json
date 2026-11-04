@@ -1,9 +1,9 @@
 {
     "algorithm-language": "Python",
-    "description": "Metadron Capital - LEAN build: smart-beta corridor v2 (MES overlay), HMM regime, forward Rm, S&P 1500 fundamentals, decision matrix (full Kelly), GICS theme rotation, options, protection, intraday heartbeat.",
+    "description": "Metadron Capital - LEAN build: smart-beta corridor v2 (MES overlay = phase 2, off), HMM regime, forward Rm, S&P 1500 fundamentals, decision matrix (full Kelly), GICS theme rotation, options, protection, intraday heartbeat.",
     "parameters": {
         "kelly_fraction": "1.0",
-        "beta_instrument": "MES",
+        "beta_instrument": "NONE",
         "rm_lookback": "252",
         "rm_smoothing": "0.10",
         "rotation_trading": "true",

@@ -103,7 +103,11 @@ def test_allocation_matches_repo_buckets():
     assert (r.options_notional_pct, r.options_ig_pct, r.options_hy_pct, r.options_distressed_pct) == (0.10, 0.04, 0.04, 0.02)
     assert r.money_market_pct == 0.0 and r.ig_reduction_on_margin_breach == 0.0
     import risk_budget as rbx
-    assert rbx.MAX_FUTURES_LEVERAGE == 2.0 and r.futures_beta_pct == 2.0                # owner: futures ≤ 2.0x NAV
+    assert rbx.MAX_FUTURES_LEVERAGE == 2.0                                     # phase-2 cap kept in code
+    assert r.futures_beta_pct == 0.0                                           # phase 1: MES not in the allocation
+    import json
+    cfg = json.load(open(os.path.join(os.path.dirname(__file__), "..", "algorithm", "config.json")))
+    assert cfg["parameters"]["beta_instrument"] == "NONE"
 
 
 def test_sleeves_fill_by_gics_sector_budget_with_spill():

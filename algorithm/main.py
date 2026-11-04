@@ -60,7 +60,10 @@ class MetadronCorridor(QCAlgorithm):
         p = lambda k, d: self.get_parameter(k, d)
         self.k = float(p("kelly_fraction", 1.0))
         dm.KELLY_FRACTION = self.k
-        self.instrument = p("beta_instrument", "MES").upper()
+        # PHASE 2: the MES futures beta overlay (corridor L − sleeve beta, ≤ 2.0x NAV) is built but OFF by default
+        # (owner, Nov 2026). beta_instrument = NONE (phase 1: no overlay, corridor computed + reported only),
+        # MES (phase 2: futures overlay), SPY (≤ 2x ETF overlay).
+        self.instrument = p("beta_instrument", "NONE").upper()
         self.rm_lookback = int(p("rm_lookback", 252))
         self.rm_smoothing = float(p("rm_smoothing", 0.10))
         self.rotation_trading = str(p("rotation_trading", "true")).lower() == "true"
@@ -82,6 +85,12 @@ class MetadronCorridor(QCAlgorithm):
             self.future.set_leverage(MAX_GROSS_LEVERAGE + 0.5)
         else:
             self.future = None
+        self.ref_index = None                     # phase 1 cross-feed reference for the feed guard: S&P 500 index
+        if self.future is None:
+            try:
+                self.ref_index = self.add_index("SPX", self.res).symbol
+            except Exception as exc:
+                self.debug(f"SPX index unavailable ({exc}) — feed guard runs staleness checks only")
 
         tickers = sorted(set(ESCALATION_SLEEVE["oil_option_underlyings"]) | ALL_ETFS
                          | {"HYG", "LQD", DEFENSE_SIGNAL_FALLBACK})
@@ -285,6 +294,8 @@ class MetadronCorridor(QCAlgorithm):
 
     def _set_beta_leverage(self, leverage: float, tag: str):
         nav = self.portfolio.total_portfolio_value
+        if self.instrument == "NONE":
+            return                                     # phase 1: no beta overlay (MES = phase 2)
         if self.future is None:
             self.set_holdings(self.spy, min(leverage, 2.0), tag=tag)
             return
@@ -385,9 +396,10 @@ class MetadronCorridor(QCAlgorithm):
     def _feed_check(self) -> bool:
         """Staleness + SPY/MES cross-feed + jump checks; flips self.feed_ok and logs transitions."""
         keys = {"SPY": self.spy}
-        mes_sym = self.future.mapped if self.future is not None else None
+        mes_sym = self.future.mapped if self.future is not None else self.ref_index
+        ref_name = "MES" if self.future is not None else "SPX"
         if mes_sym is not None:
-            keys["MES"] = mes_sym
+            keys[ref_name] = mes_sym
         for kv in self.portfolio:
             if kv.value.invested and kv.value.type == SecurityType.EQUITY:
                 keys[kv.key.value] = kv.key
@@ -395,7 +407,7 @@ class MetadronCorridor(QCAlgorithm):
         spy_px = self.securities[self.spy].price
         mes_px = self.securities[mes_sym].price if mes_sym is not None else None
         was = self.feed_ok
-        st = self.feed.check(self._minutes(self.time), last, spy_px, mes_px)
+        st = self.feed.check(self._minutes(self.time), last, spy_px, mes_px, ref_name)
         self.feed_ok = st.ok
         if was and not st.ok:
             self.debug("FEED HALT: " + "; ".join(st.reasons[:5]) + " — no new entries, resting stops stay active")
@@ -575,8 +587,10 @@ class MetadronCorridor(QCAlgorithm):
             self.targets = {t: w * 0.5 for t, w in targets.items()}
         if self.breaker_on:
             beta_lev *= 0.5
-        self.beta_target = max(-MAX_FUTURES_LEVERAGE, min(MAX_FUTURES_LEVERAGE, beta_lev))   # owner cap: 2.0x NAV
-        self.state.update(sleeve_beta=sleeve_beta, beta_overlay=self.beta_target, cvar_scale=scale, stop=stop.action,
+        overlay = max(-MAX_FUTURES_LEVERAGE, min(MAX_FUTURES_LEVERAGE, beta_lev))   # owner cap: 2.0x NAV
+        self.beta_target = 0.0 if self.instrument == "NONE" else overlay              # phase 1: not executed
+        self.state.update(sleeve_beta=sleeve_beta, beta_overlay=self.beta_target, overlay_phase2=overlay,
+                          beta_instrument=self.instrument, cvar_scale=scale, stop=stop.action,
                           escalation=esc, bias=bias)
         self.option_plans = self._option_plans(plan, ev, kron) if self.trade_options and stop.action != "CLOSE" else []
         self._weekly_learning(closes, kron)

@@ -6,8 +6,8 @@ handles what encryption cannot:
 
     1. STALENESS     every key price must be fresh during the session: SPY and MES ≤ 5 minutes, held single
                      names ≤ 15 minutes (daily-resolution backtests: multi-day gaps only)
-    2. CROSS-FEED    SPY (stock/ETF feed, e.g. Tradier) vs MES (futures feed, IBKR) — different providers,
-                     different venues. Their ratio is stable intraday; a deviation > BASIS_TOL from its
+    2. CROSS-FEED    SPY (ETF) vs an independent reference: phase 1 the S&P 500 index (SPX, calculated by S&P
+                     from all 500 constituents), phase 2 the MES future (CME, IBKR feed) — different sources. Their ratio is stable intraday; a deviation > BASIS_TOL from its
                      rolling median means one feed is delayed or wrong. Faking both consistently is hard.
     3. JUMPS         a key price moving > JUMP_TOL between checks with no matching move in the other feed
     → any failure  = HALT: no new entries, no leverage increases, no market orders; existing protection
@@ -55,11 +55,12 @@ class FeedGuard:
         self.state = GuardState()
 
     def check(self, now_minutes: float, last_bar_minutes: Dict[str, Optional[float]],
-              spy: Optional[float], mes: Optional[float]) -> GuardState:
-        """now_minutes / last_bar_minutes: minutes since any fixed epoch (e.g. timestamp() / 60)."""
+              spy: Optional[float], mes: Optional[float], ref_name: str = "MES") -> GuardState:
+        """now_minutes / last_bar_minutes: minutes since any fixed epoch (e.g. timestamp() / 60).
+        mes = the independent reference price (MES future in phase 2; the S&P 500 index SPX in phase 1)."""
         reasons = []
         for name, t in last_bar_minutes.items():
-            lag = DAILY_LAG_MIN if self.daily else (MAX_LAG_MIN if name in ("SPY", "MES") else NAME_LAG_MIN)
+            lag = DAILY_LAG_MIN if self.daily else (MAX_LAG_MIN if name in ("SPY", ref_name) else NAME_LAG_MIN)
             if t is None:
                 reasons.append(f"{name}: no data")
             elif now_minutes - t > lag:
@@ -69,14 +70,14 @@ class FeedGuard:
             if len(self.ratios) >= 5:
                 med = statistics.median(self.ratios)
                 if abs(r / med - 1) > BASIS_TOL:
-                    reasons.append(f"SPY/MES basis off {r / med - 1:+.2%} (feeds disagree)")
+                    reasons.append(f"SPY/{ref_name} basis off {r / med - 1:+.2%} (feeds disagree)")
             if not reasons:
                 self.ratios.append(r)
-            for name, px, other, opx in (("SPY", spy, "MES", mes), ("MES", mes, "SPY", spy)):
+            for name, px, other, opx in (("SPY", spy, ref_name, mes), (ref_name, mes, "SPY", spy)):
                 p0, o0 = self.last.get(name), self.last.get(other)
                 if p0 and o0 and abs(px / p0 - 1) > JUMP_TOL and abs(opx / o0 - 1) < JUMP_TOL / 3:
                     reasons.append(f"{name} jumped {px / p0 - 1:+.1%} without {other}")
-            self.last.update(SPY=spy, MES=mes)
+            self.last.update({"SPY": spy, ref_name: mes})
         st = self.state
         if reasons:
             st.ok, st.reasons, st.clean_streak = False, reasons, 0

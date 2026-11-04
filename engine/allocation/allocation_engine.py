@@ -124,7 +124,7 @@ class AllocationRules:
     options_ig_pct: float = 0.04            #    4% IG options premium
     options_hy_pct: float = 0.04            #    4% HY options premium
     options_distressed_pct: float = 0.02    #    2% distressed options premium
-    futures_beta_pct: float = 2.00          # owner: MES corridor overlay notional ≤ 2.0x NAV (was 0.15)
+    futures_beta_pct: float = 0.00          # PHASE 2 (owner, Nov 2026): MES overlay off; phase-2 cap 2.0x NAV
     # ── Margin + dry powder ───────────────────────────────────────
     margin_pct: float = 0.08               # 8% — IM for options + futures
     margin_breach_threshold: float = 0.08  # If margin > 8%, reduce IG by 5%
