@@ -11,7 +11,7 @@ Kronos / LEAN / OpenJarvis, Jarvis, docs and tests. Nothing here depends on the 
 
 ```bash
 pip install -r requirements.txt
-python3 -m pytest tests -q          # 280 tests
+python3 -m pytest tests -q          # 285 tests
 ```
 
 ## What is where

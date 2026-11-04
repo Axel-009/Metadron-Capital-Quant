@@ -26,6 +26,7 @@ import decision as dm
 import options as op
 import protection as pr
 import alpha as al
+import feed_guard as fg
 
 # ETF buckets (allocation_engine: TLTW/cash-flow 15%, FI/macro 5%) — the only ETFs held as positions
 CASHFLOW_ETFS = {"income": ["TLTW", "JEPI", "JEPQ", "DIVO"], "commodities": ["GLD", "DBC"]}
@@ -110,6 +111,11 @@ class MetadronCorridor(QCAlgorithm):
         self.current_leverage, self.beta_target, self.state = 0.0, 0.0, None
         self.peak_nav = self.portfolio.total_portfolio_value
         self.day_open_nav, self.breaker_on, self.week_step = None, False, 0
+        self.feed, self.stop_tickets, self.feed_ok = fg.FeedGuard(daily=self.res == Resolution.DAILY), {}, True
+        try:
+            self.default_order_properties.time_in_force = TimeInForce.GOOD_TIL_CANCELED   # resting stops survive days
+        except Exception:
+            pass
         self.set_warm_up(self.rm_lookback + 5, Resolution.DAILY)
 
         on = lambda m, fn: self.schedule.on(self.date_rules.every_day(self.spy),
@@ -291,15 +297,21 @@ class MetadronCorridor(QCAlgorithm):
             return
         mult = sec.symbol_properties.contract_multiplier
         target_qty = int(round(leverage * nav / (price * mult)))
-        delta = target_qty - int(self.portfolio[contract].quantity)
-        if delta != 0:
-            self.market_order(contract, delta, tag=tag)
+        current = int(self.portfolio[contract].quantity)
+        delta = target_qty - current
+        if delta == 0:
+            return
+        if not self.feed_ok and abs(target_qty) > abs(current):
+            self.debug(f"FEED HALT: MES increase blocked ({current} → {target_qty})")
+            return
+        self._limit(contract, delta, "FUTURE", tag)
 
     def on_symbol_changed_events(self, symbol_changed_events):
         """Roll the futures position into the newly mapped contract."""
         for _, changed in symbol_changed_events.items():
             old, new = changed.old_symbol, changed.new_symbol
             qty = self.portfolio[old].quantity
+            self._drop_stop(old)                           # no orphan stop on the expiring contract
             if qty != 0:
                 self.liquidate(old, tag="roll")
                 self.market_order(new, qty, tag="roll")
@@ -359,10 +371,112 @@ class MetadronCorridor(QCAlgorithm):
             out["flags"][t] = e.get("flags", [])
         return out
 
+    # ------------------------------------------------------------------ feed guard (feed_guard.py)
+    def _minutes(self, t):
+        return t.timestamp() / 60.0 if t is not None and hasattr(t, "timestamp") else None
+
+    def _last_bar(self, sym):
+        try:
+            d = self.securities[sym].get_last_data()
+            return self._minutes(d.end_time) if d is not None else None
+        except Exception:
+            return None
+
+    def _feed_check(self) -> bool:
+        """Staleness + SPY/MES cross-feed + jump checks; flips self.feed_ok and logs transitions."""
+        keys = {"SPY": self.spy}
+        mes_sym = self.future.mapped if self.future is not None else None
+        if mes_sym is not None:
+            keys["MES"] = mes_sym
+        for kv in self.portfolio:
+            if kv.value.invested and kv.value.type == SecurityType.EQUITY:
+                keys[kv.key.value] = kv.key
+        last = {k: self._last_bar(s) for k, s in keys.items()}
+        spy_px = self.securities[self.spy].price
+        mes_px = self.securities[mes_sym].price if mes_sym is not None else None
+        was = self.feed_ok
+        st = self.feed.check(self._minutes(self.time), last, spy_px, mes_px)
+        self.feed_ok = st.ok
+        if was and not st.ok:
+            self.debug("FEED HALT: " + "; ".join(st.reasons[:5]) + " — no new entries, resting stops stay active")
+        elif not was and st.ok:
+            self.debug("FEED OK: halt cleared")
+        self.plot("Feed", "ok", 1.0 if st.ok else 0.0)
+        return st.ok
+
+    def _drop_stop(self, sym):
+        """Cancel a name's resting stop before trading it (re-placed by _sync_stops once no order is working),
+        so a stop and a sell can never both execute and flip the position short."""
+        m = self.stop_tickets.pop(sym, None)
+        if m is not None:
+            try:
+                m["ticket"].cancel()
+            except Exception:
+                pass
+
+    def _working(self, sym) -> bool:
+        keep = {m["ticket"].order_id for m in self.stop_tickets.values()}
+        try:
+            return any(o.id not in keep for o in self.transactions.get_open_orders(sym))
+        except Exception:
+            return False
+
+    def _cancel_working(self, sym):
+        """Cancel working (non-stop) orders for a symbol so cancel-and-replace never stacks orders."""
+        keep = {m["ticket"].order_id for m in self.stop_tickets.values()}
+        try:
+            for o in self.transactions.get_open_orders(sym):
+                if o.id not in keep:
+                    self.transactions.cancel_order(o.id)
+        except Exception:
+            pass
+
+    def _limit(self, sym, qty, kind, tag):
+        """Collared limit order around the last trusted price (never a raw market order)."""
+        px = self.securities[sym].price
+        if px <= 0 or qty == 0:
+            return
+        self._cancel_working(sym)
+        self._drop_stop(sym)
+        self.limit_order(sym, qty, fg.collar(px, qty > 0, kind), tag=tag)
+
+    def _sync_stops(self):
+        """Resting broker-side stops: long stocks at peak −10%, MES overlay at the ~8%-NAV adverse move."""
+        want = {}
+        for kv in self.portfolio:
+            sym, h = kv.key, kv.value
+            if not h.invested:
+                continue
+            if h.type == SecurityType.EQUITY and h.quantity > 0:
+                st = self.protector.states.get(sym.value)
+                peak = st.peak if st is not None else self.securities[sym].price
+                want[sym] = (-int(h.quantity), fg.position_stop(peak))
+            elif h.type == SecurityType.FUTURE and h.quantity != 0:
+                stop = fg.futures_stop(self.securities[sym].price, self.current_leverage)
+                if stop is not None:
+                    want[sym] = (-int(h.quantity), stop)
+        for sym in list(self.stop_tickets):
+            m = self.stop_tickets[sym]
+            done = str(getattr(m["ticket"], "status", "")).upper().endswith(("FILLED", "CANCELED", "INVALID"))
+            w = want.get(sym)
+            if done or w is None or w[0] != m["qty"] or abs(w[1] / m["stop"] - 1) > fg.STOP_REPLACE:
+                if not done:
+                    try:
+                        m["ticket"].cancel()
+                    except Exception:
+                        pass
+                self.stop_tickets.pop(sym, None)
+        for sym, (qty, stop) in want.items():
+            if sym not in self.stop_tickets and qty != 0 and not self._working(sym):
+                t = self.stop_market_order(sym, qty, stop, tag=f"RESTING STOP {sym.value} @ {stop}")
+                self.stop_tickets[sym] = {"ticket": t, "qty": qty, "stop": stop}
+
     # ------------------------------------------------------------------ 09:31 risk-open
     def risk_open(self):
         if self.is_warming_up:
             return
+        self._feed_check()
+        self._sync_stops()                                 # names traded in yesterday's closing auction
         self.day_open_nav, self.breaker_on = self._nav(), False
         self.risk_check()
 
@@ -467,6 +581,7 @@ class MetadronCorridor(QCAlgorithm):
         self.option_plans = self._option_plans(plan, ev, kron) if self.trade_options and stop.action != "CLOSE" else []
         self._weekly_learning(closes, kron)
         self._plots(drift, fwd, reg, state, cap, sigma)
+        self._sync_stops()
         self._publish_state()
 
     def _decide(self, spy_closes, regime, ev, kron):
@@ -553,8 +668,8 @@ class MetadronCorridor(QCAlgorithm):
                 continue
             sec = self.securities[sym]
             price = sec.price
-            if price <= 0 or (self.breaker_on and target > self._weight(sym)):
-                continue
+            if price <= 0 or ((self.breaker_on or not self.feed_ok) and target > self._weight(sym)):
+                continue                                   # no new risk under the breaker or a feed halt
             delta_w = target - self._weight(sym)
             if abs(delta_w) < MIN_TRADE:
                 continue
@@ -565,28 +680,37 @@ class MetadronCorridor(QCAlgorithm):
                 continue
             why = self.decisions[t].reasons[-1] if t in self.decisions and self.decisions[t].reasons else "rotation/sleeve"
             if moc:
+                self._cancel_working(sym)
+                self._drop_stop(sym)
                 self.market_on_close_order(sym, qty, tag=f"MOC {t} → {target:.1%}: {why}")
             else:
-                self.market_order(sym, qty, tag=f"OPEN {t} → {target:.1%}: {why}")
+                self._limit(sym, qty, "EQUITY", f"OPEN {t} → {target:.1%}: {why}")
 
     def core(self):
         if self.is_warming_up or self.state is None:
             return
+        self._feed_check()
         if should_rebalance(self.current_leverage, self.beta_target):
             self._set_beta_leverage(self.beta_target, tag=f"{self.state['zone']} Rm={self.state['rm']:.2%} "
                                     f"{self.state['regime']}{' burst' if self.state['burst'] else ''} L={self.state['L']:.2f} "
                                     f"overlay={self.beta_target:.2f}")
             self.current_leverage = self.beta_target
         self._trade_equities(hb.OPEN_SLICE)
+        self._sync_stops()
 
     def close_auction(self):
         if self.is_warming_up or self.state is None:
             return
+        if not self._feed_check():
+            self.debug("FEED HALT: closing-auction orders skipped (market-on-close has no price collar)")
+            return
         self._trade_equities(1.0, moc=True)
+        self._sync_stops()
 
     def expiry(self):
         if self.is_warming_up:
             return
+        self._feed_check()
         self._option_exits(only_expiry=True)
         if self.state is not None and should_rebalance(self.current_leverage, self.beta_target):
             self._set_beta_leverage(self.beta_target, tag="beta true-up")
@@ -596,6 +720,7 @@ class MetadronCorridor(QCAlgorithm):
     def risk_check(self):
         if self.is_warming_up:
             return
+        self._feed_check()
         nav = self._nav()
         if self.day_open_nav and not self.breaker_on and pr.breaker(nav, self.day_open_nav):
             self.breaker_on = True
@@ -612,7 +737,7 @@ class MetadronCorridor(QCAlgorithm):
                 continue
             qty = -int(h.quantity * a.fraction) if a.kind == "TRIM" else -int(h.quantity)
             if qty:
-                self.market_order(sym, qty, tag=f"PROTECT {a.kind} {sym.value}: {a.reason}")
+                self._limit(sym, qty, "EQUITY", f"PROTECT {a.kind} {sym.value}: {a.reason}")
             if sym.value in self.targets:
                 self.targets[sym.value] = self._weight(sym) * (1 - a.fraction) if a.kind == "TRIM" else 0.0
         self._option_exits()
@@ -628,6 +753,7 @@ class MetadronCorridor(QCAlgorithm):
                     self.hedged.add(sym.value)
                 elif act == "UNHEDGE":
                     self.hedged.discard(sym.value)
+        self._sync_stops()
 
     # ------------------------------------------------------------------ options
     def _sleeve_of(self, ticker):
@@ -705,7 +831,7 @@ class MetadronCorridor(QCAlgorithm):
             self.option_candidates[(p["ticker"], p["kind"], p["call"])] = picks
 
     def options_execute(self):
-        if self.is_warming_up or not self.option_plans or self.breaker_on:
+        if self.is_warming_up or not self.option_plans or self.breaker_on or not self._feed_check():
             return
         nav, done = self._nav(), []
         for p in self.option_plans:
@@ -764,6 +890,8 @@ class MetadronCorridor(QCAlgorithm):
         self.option_plans = [p for p in self.option_plans if p not in done]
 
     def _option_exits(self, only_expiry=False):
+        if not self.feed_ok and not only_expiry:
+            return                                         # under a feed halt only expiry closes run
         ev = self.events()
         for sym, meta in list(self.option_book.items()):
             h = self.portfolio[sym]
@@ -875,6 +1003,9 @@ class MetadronCorridor(QCAlgorithm):
                       "credit_tier": getattr(getattr(self.scores.get(t), "capital", None), "credit_tier", None),
                       "peak": st.peak if st else None, "option": self.option_book.get(sym, {}).get("kind")}
         report = {"time": str(self.time), "nav": nav, "state": self.state, "breaker": self.breaker_on,
+                  "feed": {"ok": self.feed_ok, "reasons": self.feed.state.reasons,
+                           "spy_last": self.securities[self.spy].price, "spy_time": str(self.time),
+                           "resting_stops": {str(k): round(v["stop"], 2) for k, v in self.stop_tickets.items()}},
                   "sector_scores": self.sector_score, "sector_budget": self.sector_budget,
                   "etf_buckets": getattr(self, "state_etf", {}), "bucket_caps": getattr(self, "caps", {}),
                   "positions": pos, "targets": self.targets,

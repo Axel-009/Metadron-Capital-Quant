@@ -11,7 +11,7 @@ disagrees with this file, THIS file wins; e.g. its corridor section was linear a
 
 ```
 algorithm/              QuantConnect LEAN algorithm: main (heartbeat + wiring), corridor, risk_budget, regime, forward_rm,
-                        fundamentals, universe, profiles, decision, alpha, options, protection, schedule, sectors, rotation,
+                        fundamentals, universe, profiles, decision, alpha, options, protection, feed_guard, schedule, sectors, rotation,
                         market_map, macro_regime, sector_rotation
 agents/                 market_reasoning.md, roster.yaml, llm.py, qc_api.py, macro_agent, events_agent, kronos_agent,
                         risk_officer, vault_sync, qc_deploy (all run by GitHub Actions; propose-only)
@@ -33,7 +33,7 @@ vendor/                 Kronos, LEAN, OpenJarvis — full source copies, pinned 
 jarvis/                 Jarvis setup guide + dashboard page
 governance/ config/     credit classification, repo/heartbeat config
 docs/                   architecture DNA, corridor charts
-tests/                  280 tests (legacy engine suite + new algorithm tests)
+tests/                  285 tests (legacy engine suite + new algorithm tests)
 scripts/update_vendor.sh  re-sync vendored repos to upstream
 ```
 
@@ -266,6 +266,21 @@ TLTW / cash-flow 15% (income ETFs TLTW, JEPI, JEPQ, DIVO; GLD/DBC take ½ when s
 GOLD/CASH) and FI / macro 5% (TLT/IEF when bonds hedge, else SHY). **MES overlay = corridor L − Σ wᵢβᵢ**, capped at ±2.0× NAV (owner; so below Rm 7% the sleeves are
 beta-hedged to zero, and above it total market beta ≈ sleeves' ≈ 0.7 + ≤ 2.0 futures), scaled so book CVaR95 ≤ 1.5 × regime VaR ceiling, halved by the breaker, then portfolio hard stops
 (−4% halve, −8% flat; re-armed after 5 days flat).
+
+### Feed guard + live data (code: `algorithm/feed_guard.py`; owner threat model: a delayed, cut or altered feed)
+
+Live data: **Tradier** (token, no session to keep alive, no market-data-line limit) for stocks and options; **IBKR**
+for MES futures and execution (use a separate IBKR username for QuantConnect). Two providers on two venues, so
+delaying both consistently is hard and a one-sided delay shows up as a SPY/MES mismatch.
+
+| Defence | Rule |
+|---------|------|
+| Staleness | SPY and MES last bar ≤ 5 min, held names ≤ 15 min (daily backtests: multi-day gaps only) |
+| Cross-feed | MES/SPY ratio within 0.5% of its rolling median; a one-sided > 3% jump between checks |
+| Halt | any failure → no new entries, no leverage increases, no options entries, no market-on-close; reductions only, collared; clears after 2 clean checks |
+| Collars | every stock / ETF / futures order is a limit order within 30 bps (futures 20 bps) of the last trusted price |
+| Broker-side stops | resting GTC stops at IBKR: long stocks at peak −10%, MES at the adverse move costing ≈ 8% NAV (2–10%); they execute even if the feed or the algorithm is cut. A name's stop is cancelled before any trade on it and re-placed once no order is working (never stop + sell → short); re-placed only when the level moves > 2% |
+| Out-of-band audit | risk officer compares the algorithm's SPY print with an independent close (Stooq) and reports halts; failure → e-mail alert |
 
 ### Options, protection, tail hedges (code: `algorithm/options.py`, `protection.py`)
 

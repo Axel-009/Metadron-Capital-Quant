@@ -1,0 +1,60 @@
+import datetime as dt
+import os
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "algorithm"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "agents"))
+import feed_guard as fg  # noqa: E402
+import risk_officer as ro  # noqa: E402
+
+
+def warm(g, n=10, spy=500.0, mes=5000.0, t0=0.0):
+    for i in range(n):
+        g.check(t0 + i, {"SPY": t0 + i, "MES": t0 + i}, spy * (1 + 0.0001 * i), mes * (1 + 0.0001 * i))
+    return t0 + n
+
+
+def test_stale_feed_halts_and_clears_after_clean_checks():
+    g = fg.FeedGuard()
+    t = warm(g)
+    st = g.check(t + 30, {"SPY": t + 30, "MES": t - 1}, 500.5, 5005.0)      # MES feed delayed 31 min
+    assert not st.ok and any("MES: stale" in r for r in st.reasons)
+    assert not g.check(t + 31, {"SPY": t + 31, "MES": None}, 500.5, 5005.0).ok   # cut feed
+    assert not g.check(t + 32, {"SPY": t + 32, "MES": t + 32}, 500.5, 5005.0).ok  # 1 clean check is not enough
+    assert g.check(t + 33, {"SPY": t + 33, "MES": t + 33}, 500.5, 5005.0).ok
+
+
+def test_cross_feed_disagreement_halts():
+    g = fg.FeedGuard()
+    t = warm(g)
+    st = g.check(t, {"SPY": t, "MES": t}, 500.0, 5000.0 * 1.01)              # fresh but 1% apart
+    assert not st.ok and any("basis" in r for r in st.reasons)
+
+
+def test_one_sided_jump_halts():
+    g = fg.FeedGuard()
+    t = warm(g)
+    st = g.check(t, {"SPY": t, "MES": t}, 500 * 0.95, 5000.0)
+    assert not st.ok and any("jumped" in r for r in st.reasons)
+
+
+def test_collars_and_resting_stops():
+    assert fg.collar(100.0, True) == 100.3 and fg.collar(100.0, False) == 99.7
+    assert fg.collar(5000.0, True, "FUTURE") == 5010.0
+    assert fg.position_stop(110.0) == 99.0                                    # peak −10%
+    assert fg.futures_stop(5000.0, 2.0) == 4800.0                             # 4% move × 2x = 8% NAV
+    assert fg.futures_stop(5000.0, -0.5) == 5500.0                            # short hedge, capped at 10%
+    assert fg.futures_stop(5000.0, 8.0) == 4900.0                             # floor 2%
+    assert fg.futures_stop(5000.0, 0.0) is None
+
+
+def test_risk_officer_out_of_band_audit():
+    state = {"feed": {"ok": True, "spy_last": 500.0, "spy_time": "2026-11-03 15:45:00"}}
+    assert ro.feed_findings(state, dt.date(2026, 11, 3), reference=lambda t, d: 501.0) == []
+    bad = ro.feed_findings(state, dt.date(2026, 11, 3), reference=lambda t, d: 520.0)
+    assert bad and "independent close" in bad[0]
+    halted = ro.feed_findings({"feed": {"ok": False, "reasons": ["MES: stale 12 min"]}}, dt.date(2026, 11, 3),
+                              reference=lambda t, d: None)
+    assert halted and "HALTED" in halted[0]

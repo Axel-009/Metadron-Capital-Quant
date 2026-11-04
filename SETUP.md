@@ -50,6 +50,12 @@ Repo → Settings → Secrets and variables → Actions → *New repository secr
 
 ## 6. Go live on paper (5 min, the only manual trading step)
 QuantConnect project → **Deploy Live** → brokerage *Interactive Brokers* → your **paper** account → node.
+- Use a **separate IBKR username** for QuantConnect (IBKR account settings → users), so your own TWS / app logins
+  never disconnect the algorithm.
+- Data providers: **Tradier** (paste a Tradier API token; needs an open Tradier account) for stocks and options,
+  **Interactive Brokers** for the MES futures. If QuantConnect does not offer that combination, use QuantConnect's
+  own feed for stocks / options instead of Tradier.
+- IBKR asks for a 2FA re-login about once a week; approve it in the IBKR mobile app (resting stops stay at IBKR).
 After that, a new algorithm version goes live only when you press *Deploy Live* again (design rule: you approve
 what trades). Deploys from GitHub only update the code and run a backtest.
 

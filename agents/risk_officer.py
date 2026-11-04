@@ -5,6 +5,7 @@ Flex Web Service (no gateway to keep running: create one Activity Flex Query wit
 Client Portal → Reporting → Flex Queries, then set IBKR_FLEX_TOKEN and IBKR_FLEX_QUERY_ID).
 
     reconciliation   quantity differences per symbol (stocks / ETFs; options and futures by local symbol)
+    feed audit       feed-guard halts + the algorithm's SPY print vs an independent close (Stooq)
     risk checks      breaker on, hard stop active, overlay vs corridor L, options premium vs the 10% NAV budget,
                      stale state (> 1 business day), data-health alerts
     output           vault/Risk/YYYY-MM-DD.md and a non-zero exit code when anything needs the owner
@@ -78,6 +79,38 @@ def reconcile(qc: Dict[str, float], ib: Dict[str, float]) -> List[str]:
     return diffs
 
 
+AUDIT_TOL = 0.015       # algorithm's 15:45 SPY print vs the independent daily close
+
+
+def stooq_close(ticker: str, day: dt.date) -> Optional[float]:
+    """Independent reference price (Stooq daily CSV, no key) — a source the live feed cannot touch."""
+    try:
+        url = f"https://stooq.com/q/d/l/?s={ticker.lower()}.us&i=d&d1={day:%Y%m%d}&d2={day:%Y%m%d}"
+        with urllib.request.urlopen(url, timeout=30) as r:
+            rows = r.read().decode().strip().splitlines()
+        return float(rows[1].split(",")[4]) if len(rows) > 1 else None
+    except Exception:
+        return None
+
+
+def feed_findings(state: dict, today: dt.date, reference=stooq_close) -> List[str]:
+    """Out-of-band feed audit: halts reported by the algorithm + its SPY print vs an independent close."""
+    feed = state.get("feed") or {}
+    out = []
+    if feed.get("ok") is False:
+        out.append("feed guard HALTED: " + "; ".join(feed.get("reasons") or [])[:300])
+    spy = feed.get("spy_last")
+    try:
+        day = dt.date.fromisoformat(str(feed.get("spy_time", ""))[:10])
+    except ValueError:
+        day = None
+    if spy and day:
+        ref = reference("SPY", day)
+        if ref and abs(spy / ref - 1) > AUDIT_TOL:
+            out.append(f"feed audit: algorithm saw SPY {spy:.2f} vs independent close {ref:.2f} ({spy / ref - 1:+.2%})")
+    return out
+
+
 def risk_findings(state: dict, today: dt.date) -> List[str]:
     out = []
     if not state:
@@ -122,7 +155,7 @@ def run(vault: str, today: Optional[dt.date] = None, state: Optional[dict] = Non
     qc_pos = {t: float(p.get("quantity", 0)) for t, p in (state.get("positions") or {}).items()}
     ib = ib if ib is not None else ibkr_positions()
     diffs = reconcile(qc_pos, ib) if ib is not None else []
-    findings = risk_findings(state, today)
+    findings = risk_findings(state, today) + (feed_findings(state, today) if state else [])
     os.makedirs(os.path.join(vault, "Risk"), exist_ok=True)
     with open(os.path.join(vault, "Risk", f"{today}.md"), "w", encoding="utf-8") as fh:
         fh.write(note(today, state, diffs, findings, ib is not None))
