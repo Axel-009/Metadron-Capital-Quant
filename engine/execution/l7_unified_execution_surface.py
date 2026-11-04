@@ -119,6 +119,14 @@ def _dte_from_expiry(expiry: str) -> float:
         return 7.0
 
 
+
+
+class _AlreadyRegistered(Exception):
+    """Internal: Prometheus metrics already registered in this process."""
+
+
+_L7_PROM = None   # process-global Prometheus metrics (prometheus_client forbids registering a name twice)
+
 class ProductType(str, Enum):
     """Tradeable product types routed through L7."""
     EQUITY = "EQUITY"
@@ -1406,8 +1414,12 @@ class L7UnifiedExecutionSurface:
 
         # --- Prometheus metrics (optional) ---
         self._prom = None
+        global _L7_PROM
         try:
             from prometheus_client import Counter, Gauge, Histogram, Summary
+            if _L7_PROM is not None:            # metrics are process-global: register once, reuse
+                self._prom = _L7_PROM
+                raise _AlreadyRegistered
             self._prom = {
                 "orders_total": Counter("l7_orders_total", "Total orders submitted", ["product", "side", "algo"]),
                 "orders_filled": Counter("l7_orders_filled", "Orders filled", ["product", "algo"]),
@@ -1427,7 +1439,10 @@ class L7UnifiedExecutionSurface:
                 "tca_total_cost_bps": Summary("l7_tca_total_cost_bps", "TCA total cost per trade"),
                 "tca_implementation_shortfall": Summary("l7_tca_is_usd", "Implementation shortfall USD"),
             }
+            _L7_PROM = self._prom
             logger.info("L7: Prometheus metrics registered")
+        except _AlreadyRegistered:
+            pass
         except ImportError:
             logger.debug("L7: prometheus_client not installed — metrics disabled")
 
