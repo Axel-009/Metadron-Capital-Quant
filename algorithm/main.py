@@ -154,6 +154,7 @@ class MetadronCorridor(QCAlgorithm):
         self.subsector_overrides = {}
         self.universe_settings.resolution = Resolution.DAILY if self.data_mode == "mixed" else self.res
         self.universe_syms, self.minute_subs = [], {}       # all universe Symbols; ticker → last day needed
+        self.raw_mode = set()                              # tickers switched to RAW prices (option underlyings)
         if self.universe_mode == "sp1500":
             for etf in SP1500_ETFS:
                 try:
@@ -358,7 +359,11 @@ class MetadronCorridor(QCAlgorithm):
     def _bars(self, symbol, n=300):
         """(closes, volumes) of daily bars."""
         try:
-            h = self.history(symbol, n, Resolution.DAILY)
+            try:                                           # analytics always on split/dividend-adjusted history,
+                h = self.history(symbol, n, Resolution.DAILY,  # even for option underlyings subscribed RAW
+                                 data_normalization_mode=DataNormalizationMode.ADJUSTED)
+            except TypeError:
+                h = self.history(symbol, n, Resolution.DAILY)
             if h is None or h.empty or "close" not in h.columns:
                 return [], []
             vol = [float(x) for x in h["volume"].values] if "volume" in h.columns else []
@@ -425,6 +430,40 @@ class MetadronCorridor(QCAlgorithm):
             return self._minutes(d.end_time) if d is not None else None
         except Exception:
             return None
+
+    def _ensure_raw(self, sym) -> bool:
+        """QuantConnect trades options only on underlyings with RAW (unadjusted) prices, so strikes match the real
+        price. Returns True when the switch happened now (prices become raw from the next bar)."""
+        if sym.value in self.raw_mode:
+            return False
+        try:
+            self.securities[sym].set_data_normalization_mode(DataNormalizationMode.RAW)
+        except Exception as exc:
+            self.debug(f"raw prices unavailable for {sym.value}: {exc}")
+            return True
+        self.raw_mode.add(sym.value)
+        return True
+
+    def on_splits(self, splits):
+        """Rescale position-protection levels when a split moves the traded price (raw-priced option underlyings
+        in backtests; every name live). Without this a 4:1 split reads as a −75% crash and trips the stop."""
+        for sym, split in splits.items():
+            try:
+                if split.type != SplitType.SPLIT_OCCURRED:
+                    continue
+                factor = float(split.split_factor)
+            except Exception:
+                continue
+            if factor <= 0 or not (self.live_mode or sym.value in self.raw_mode):
+                continue
+            st = self.protector.states.get(sym.value)
+            if st is not None:
+                st.peak *= factor
+                st.entry *= factor
+                if st.trimmed_at_peak is not None:
+                    st.trimmed_at_peak *= factor
+            self._drop_stop(sym)                           # re-placed at the new level by _sync_stops
+            self.debug(f"SPLIT {sym.value} ×{factor:g}: protection levels rescaled")
 
     def _ensure_minute(self):
         """'mixed' mode: minute data for the names we may trade today (shortlist + held + option underlyings);
@@ -659,6 +698,10 @@ class MetadronCorridor(QCAlgorithm):
         self._weekly_learning(closes, kron)
         self._plots(drift, fwd, reg, state, cap, sigma)
         self._ensure_minute()                              # option-plan underlyings chosen this morning
+        for p in self.option_plans:                        # raw prices before the 10:15 options window
+            sym = self._symbol(p["ticker"])
+            if sym is not None and self.securities.contains_key(sym):
+                self._ensure_raw(sym)
         self._sync_stops()
         self._publish_state()
 
@@ -900,6 +943,8 @@ class MetadronCorridor(QCAlgorithm):
                     und = None
             if und is None or not self.securities.contains_key(und):
                 continue
+            if self._ensure_raw(und):
+                continue                                   # just switched to raw prices: pick strikes next window
             S = self.securities[und].price
             try:
                 chain = self.option_chain_provider.get_option_contract_list(und, self.time)
