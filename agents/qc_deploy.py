@@ -68,6 +68,8 @@ if __name__ == "__main__":
     a = ap.parse_args()
     pid = os.environ.get("QC_PROJECT_ID")
     if not pid or qc_api.creds() is None:
-        print("QC_PROJECT_ID / QC_USER_ID / QC_API_TOKEN not set — nothing deployed")
-        sys.exit(0)
+        missing = [k for k in ("QC_PROJECT_ID", "QC_USER_ID", "QC_API_TOKEN") if not os.environ.get(k)]
+        print(f"::error::Missing repository secrets: {', '.join(missing)} — add them under Settings → Secrets "
+              "and variables → Actions → Repository secrets (Secrets tab, not Variables). Nothing deployed.")
+        sys.exit(1)
     sys.exit(0 if deploy(int(pid), a.backtest, a.name) else 1)
