@@ -12,6 +12,6 @@
         "shortlist_size": "60",
         "trade_equities": "true",
         "trade_options": "true",
-        "data_resolution": "minute"
+        "data_resolution": "mixed"
     }
 }

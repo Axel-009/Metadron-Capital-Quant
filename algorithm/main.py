@@ -72,7 +72,11 @@ class MetadronCorridor(QCAlgorithm):
         self.shortlist_n = int(p("shortlist_size", SHORTLIST_N))
         self.trade_equities = str(p("trade_equities", "true")).lower() == "true"
         self.trade_options = str(p("trade_options", "true")).lower() == "true"
-        self.res = Resolution.MINUTE if str(p("data_resolution", "minute")).lower() == "minute" else Resolution.DAILY
+        # data_resolution: "mixed" (default) — every universe stock subscribed DAILY, traded names (shortlist, held,
+        # option underlyings) + SPY / ETFs / options at MINUTE; "minute" — every universe stock at minute (owner: once
+        # the strategy is profitable); "daily" — everything daily (fast research backtests).
+        self.data_mode = str(p("data_resolution", "mixed")).lower()
+        self.res = Resolution.DAILY if self.data_mode == "daily" else Resolution.MINUTE
 
         spy = self.add_equity("SPY", self.res)
         spy.set_leverage(2.0)
@@ -148,7 +152,8 @@ class MetadronCorridor(QCAlgorithm):
         self.scores, self.td, self.health = {}, None, {}
         self.selected, self.last_score_time = [], None
         self.subsector_overrides = {}
-        self.universe_settings.resolution = self.res
+        self.universe_settings.resolution = Resolution.DAILY if self.data_mode == "mixed" else self.res
+        self.universe_syms, self.minute_subs = [], {}       # all universe Symbols; ticker → last day needed
         if self.universe_mode == "sp1500":
             for etf in SP1500_ETFS:
                 try:
@@ -170,6 +175,7 @@ class MetadronCorridor(QCAlgorithm):
         days = (self.time - self.last_score_time).days if self.last_score_time is not None else 999
         rescore = days >= self.refresh_days
         rows, missing_n, expected = {}, 0, 0
+        uni = []                                          # every name the algorithm subscribes (daily in "mixed")
         for f in fundamental:
             sym = f.symbol
             t = sym.value
@@ -179,6 +185,7 @@ class MetadronCorridor(QCAlgorithm):
                 if not rescore:
                     if t in self.watch:
                         self.px_buf.update(t, getattr(f, "price", None))
+                        uni.append(sym)
                     continue
                 ac = getattr(f, "asset_classification", None)
                 if not watch_candidate(getattr(ac, "morningstar_sector_code", None), getattr(f, "market_cap", 0),
@@ -189,21 +196,28 @@ class MetadronCorridor(QCAlgorithm):
                     continue
                 watch_new.add(t)
                 off_index = True
+                uni.append(sym)
+            elif self.universe_mode == "sp1500":
+                uni.append(sym)
             self.px_buf.update(t, getattr(f, "price", None))
             if not rescore:
                 continue
             if not off_index:
                 d, missing = extract(f)
-            if self.universe_mode != "sp1500" and not off_index and not passes_fallback(d):
-                continue
+            if self.universe_mode != "sp1500" and not off_index:
+                if not passes_fallback(d):
+                    continue
+                uni.append(sym)                               # fallback mode: only names passing the screen
             expected += 1
             if missing:
                 missing_n += 1
                 continue
             self.eps_hist.update(t, d.get("eps_ttm"))
             rows[t] = (sym, d)
+        if self.universe_mode == "sp1500" or rescore:
+            self.universe_syms = uni
         if not rescore:
-            return self.selected
+            return self.universe_syms
         if self.subsector_overrides == {}:
             raw = self._store_read("metadron/subsector_map.json")
             try:
@@ -248,7 +262,7 @@ class MetadronCorridor(QCAlgorithm):
                        "gate_pass": sum(1 for s in scores.values() if s.gate_pass),
                        "shortlist": len(sl.names), "vetoed": len(sl.vetoed)}
         self._publish_universe(sl)
-        return self.selected
+        return self.universe_syms                         # all names subscribed; trading uses self.selected
 
     def _publish_universe(self, sl):
         h, td = self.health, self.td
@@ -412,6 +426,34 @@ class MetadronCorridor(QCAlgorithm):
         except Exception:
             return None
 
+    def _ensure_minute(self):
+        """'mixed' mode: minute data for the names we may trade today (shortlist + held + option underlyings);
+        minute-only extras unused for 10 days are released (the stock stays subscribed daily via the universe)."""
+        if self.data_mode != "mixed":
+            return
+        need = {s.value for s in self.selected}
+        need |= {kv.key.value for kv in self.portfolio if kv.value.invested and kv.key.security_type == SecurityType.EQUITY}
+        need |= {p["ticker"] for p in self.option_plans}
+        today = self.time.date()
+        for t in need:
+            if t not in self.minute_subs:
+                try:
+                    self.add_equity(t, Resolution.MINUTE).set_leverage(2.0)
+                except Exception as exc:
+                    self.debug(f"minute subscription failed for {t}: {exc}")
+                    continue
+            self.minute_subs[t] = today
+        for t, last in list(self.minute_subs.items()):
+            if t not in need and (today - last).days > 10 and t not in self.rot_symbols:
+                sym = self.sym_of.get(t)
+                h = self._holding(sym)
+                if sym is not None and (h is None or not h.invested):
+                    try:
+                        self.remove_security(sym)          # universe re-adds it at daily resolution
+                    except Exception:
+                        pass
+                    self.minute_subs.pop(t, None)
+
     def _feed_check(self) -> bool:
         """Staleness + SPY/MES cross-feed + jump checks; flips self.feed_ok and logs transitions."""
         keys = {"SPY": self.spy}
@@ -506,6 +548,7 @@ class MetadronCorridor(QCAlgorithm):
     def risk_open(self):
         if self.is_warming_up:
             return
+        self._ensure_minute()
         self._feed_check()
         self._sync_stops()                                 # names traded in yesterday's closing auction
         self.day_open_nav, self.breaker_on = self._nav(), False
@@ -615,6 +658,7 @@ class MetadronCorridor(QCAlgorithm):
         self.option_plans = self._option_plans(plan, ev, kron) if self.trade_options and stop.action != "CLOSE" else []
         self._weekly_learning(closes, kron)
         self._plots(drift, fwd, reg, state, cap, sigma)
+        self._ensure_minute()                              # option-plan underlyings chosen this morning
         self._sync_stops()
         self._publish_state()
 

@@ -276,6 +276,7 @@ feed) as the reference.
 | Defence | Rule |
 |---------|------|
 | Staleness | SPY and MES last bar ≤ 5 min, held names ≤ 15 min (daily backtests: multi-day gaps only) |
+| Data subscriptions | `data_resolution=mixed` (default): every universe stock (S&P 1500 + watch list) subscribed DAILY; traded names (shortlist, held, option underlyings), SPY, ETFs and options at MINUTE; minute extras unused 10 days are released. `minute` = all ~1,500 at minute (owner: once profitable); `daily` = fast research backtests |
 | Cross-feed | reference/SPY ratio within 0.5% of its rolling median (phase 1 SPX index, phase 2 MES); a one-sided > 3% jump between checks |
 | Halt | any failure → no new entries, no leverage increases, no options entries, no market-on-close; reductions only, collared; clears after 2 clean checks |
 | Collars | every stock / ETF / futures order is a limit order within 30 bps (futures 20 bps) of the last trusted price |
