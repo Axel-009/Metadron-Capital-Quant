@@ -77,3 +77,11 @@ def test_algorithm_files_fit_quantconnect_limit():
     for path in glob.glob(os.path.join(algo, "*.py")):
         n = len(open(path, encoding="utf-8").read())
         assert n < 60_000, f"{os.path.basename(path)} has {n} characters — split it before QuantConnect rejects it"
+
+
+def test_algorithm_class_has_only_the_quantconnect_base():
+    """QuantConnect forbids combining QCAlgorithm (a C# class) with other Python base classes (found on deploy)."""
+    import ast
+    tree = ast.parse(open(os.path.join(os.path.dirname(__file__), "..", "algorithm", "main.py")).read())
+    cls = [n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "MetadronCorridor"][0]
+    assert [b.id for b in cls.bases if isinstance(b, ast.Name)] == ["QCAlgorithm"]

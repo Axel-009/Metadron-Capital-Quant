@@ -13,7 +13,7 @@ from rotation import realised_vol as name_vol
 from sectors import SECTOR_ETF_FALLBACK
 
 
-class GuardMixin:
+class GuardMixin:   # plain holder of methods (not a base class — see main.py)
     # ------------------------------------------------------------------ feed guard (feed_guard.py)
     def _minutes(self, t):
         return t.timestamp() / 60.0 if t is not None and hasattr(t, "timestamp") else None

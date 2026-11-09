@@ -38,7 +38,7 @@ MIN_TRADE = 0.005
 STOP_COOLDOWN_DAYS = 5          # after a −8% close-out, stay flat 5 days, then re-arm at the new NAV
 
 
-class MetadronCorridor(GuardMixin, OptionsDeskMixin, QCAlgorithm):
+class MetadronCorridor(QCAlgorithm):
     """Metadron Capital — full LEAN build (steps 1–7).
 
     Heartbeat (schedule.py, aligned to intraday liquidity):
@@ -146,6 +146,27 @@ class MetadronCorridor(GuardMixin, OptionsDeskMixin, QCAlgorithm):
             on(m, self.risk_check)
         on(hb.EXPIRY, self.expiry)
         on(hb.CLOSE, self.close_auction)
+
+
+    # ---- methods kept in desk_guard.py / desk_options.py, attached here: QuantConnect's C# base class
+    # (QCAlgorithm) cannot be combined with other base classes, and files are capped at 64,000 characters.
+    _minutes = GuardMixin._minutes
+    _last_bar = GuardMixin._last_bar
+    _ensure_raw = GuardMixin._ensure_raw
+    on_splits = GuardMixin.on_splits
+    _ensure_minute = GuardMixin._ensure_minute
+    _feed_check = GuardMixin._feed_check
+    _drop_stop = GuardMixin._drop_stop
+    _working = GuardMixin._working
+    _cancel_working = GuardMixin._cancel_working
+    _limit = GuardMixin._limit
+    _sync_stops = GuardMixin._sync_stops
+    _sleeve_of = OptionsDeskMixin._sleeve_of
+    _option_plans = OptionsDeskMixin._option_plans
+    _option_premium = OptionsDeskMixin._option_premium
+    options_select = OptionsDeskMixin.options_select
+    options_execute = OptionsDeskMixin.options_execute
+    _option_exits = OptionsDeskMixin._option_exits
 
     # ------------------------------------------------------------------ universe (step 3)
     def _init_universe(self):

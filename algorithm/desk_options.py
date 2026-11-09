@@ -13,7 +13,7 @@ from rotation import realised_vol as name_vol
 from sectors import SECTOR_ETF_FALLBACK
 
 
-class OptionsDeskMixin:
+class OptionsDeskMixin:   # plain holder of methods (not a base class — see main.py)
     # ------------------------------------------------------------------ options
     def _sleeve_of(self, ticker):
         d = self.decisions.get(ticker)
