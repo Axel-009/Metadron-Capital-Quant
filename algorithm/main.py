@@ -80,7 +80,8 @@ class MetadronCorridor(QCAlgorithm):
         self.data_mode = str(p("data_resolution", "mixed")).lower()
         self.res = Resolution.DAILY if self.data_mode == "daily" else Resolution.MINUTE
 
-        spy = self.add_equity("SPY", self.res)
+        RAW = DataNormalizationMode.RAW               # every equity RAW: options need it; analytics request
+        spy = self.add_equity("SPY", self.res, data_normalization_mode=RAW)   # ADJUSTED history explicitly
         spy.set_leverage(2.0)
         self.spy = spy.symbol
         self.set_benchmark(self.spy)
@@ -103,7 +104,7 @@ class MetadronCorridor(QCAlgorithm):
         self.rot_symbols = {}
         for t in tickers:
             try:
-                sec = self.add_equity(t, self.res)
+                sec = self.add_equity(t, self.res, data_normalization_mode=DataNormalizationMode.RAW)
                 sec.set_leverage(2.0)
                 self.rot_symbols[t] = sec.symbol
             except Exception as exc:
@@ -152,6 +153,8 @@ class MetadronCorridor(QCAlgorithm):
     # (QCAlgorithm) cannot be combined with other base classes, and files are capped at 64,000 characters.
     _minutes = GuardMixin._minutes
     _last_bar = GuardMixin._last_bar
+    _is_raw = GuardMixin._is_raw
+    on_dividends = GuardMixin.on_dividends
     _ensure_raw = GuardMixin._ensure_raw
     on_splits = GuardMixin.on_splits
     _ensure_minute = GuardMixin._ensure_minute
@@ -176,6 +179,7 @@ class MetadronCorridor(QCAlgorithm):
         self.selected, self.last_score_time = [], None
         self.subsector_overrides = {}
         self.universe_settings.resolution = Resolution.DAILY if self.data_mode == "mixed" else self.res
+        self.universe_settings.data_normalization_mode = DataNormalizationMode.RAW   # option-ready, no switching
         self.universe_syms, self.minute_subs = [], {}       # all universe Symbols; ticker → last day needed
         self.raw_mode = set()                              # tickers switched to RAW prices (option underlyings)
         if self.universe_mode == "sp1500":

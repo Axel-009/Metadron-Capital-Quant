@@ -25,18 +25,41 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
         except Exception:
             return None
 
+    def _is_raw(self, sym) -> bool:
+        try:
+            subs = list(self.securities[sym].subscriptions)
+            return bool(subs) and all(c.data_normalization_mode == DataNormalizationMode.RAW for c in subs)
+        except Exception:
+            return False
+
     def _ensure_raw(self, sym) -> bool:
-        """QuantConnect trades options only on underlyings with RAW (unadjusted) prices, so strikes match the real
-        price. Returns True when the switch happened now (prices become raw from the next bar)."""
-        if sym.value in self.raw_mode:
+        """Safety net (everything is subscribed RAW): QuantConnect trades options only on RAW-priced underlyings.
+        Checks the real subscriptions; returns True when a switch was needed now (strikes picked next window)."""
+        if self._is_raw(sym):
             return False
         try:
             self.securities[sym].set_data_normalization_mode(DataNormalizationMode.RAW)
         except Exception as exc:
             self.debug(f"raw prices unavailable for {sym.value}: {exc}")
-            return True
         self.raw_mode.add(sym.value)
         return True
+
+    def on_dividends(self, dividends):
+        """RAW prices drop by the dividend on the ex-date; rescale protection levels so it is not read as a loss."""
+        for sym, div in dividends.items():
+            try:
+                ref, dist = float(div.reference_price), float(div.distribution)
+            except Exception:
+                continue
+            if ref <= 0 or dist <= 0 or dist >= ref:
+                continue
+            st = self.protector.states.get(sym.value)
+            if st is not None:
+                f = (ref - dist) / ref
+                st.peak *= f
+                st.entry *= f
+                if st.trimmed_at_peak is not None:
+                    st.trimmed_at_peak *= f
 
     def on_splits(self, splits):
         """Rescale position-protection levels when a split moves the traded price (raw-priced option underlyings
@@ -48,8 +71,8 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
                 factor = float(split.split_factor)
             except Exception:
                 continue
-            if factor <= 0 or not (self.live_mode or sym.value in self.raw_mode):
-                continue
+            if factor <= 0:
+                continue                                   # all equities trade on RAW prices
             st = self.protector.states.get(sym.value)
             if st is not None:
                 st.peak *= factor
@@ -71,7 +94,8 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
         for t in need:
             if t not in self.minute_subs:
                 try:
-                    self.add_equity(t, Resolution.MINUTE).set_leverage(2.0)
+                    self.add_equity(t, Resolution.MINUTE,
+                                    data_normalization_mode=DataNormalizationMode.RAW).set_leverage(2.0)
                 except Exception as exc:
                     self.debug(f"minute subscription failed for {t}: {exc}")
                     continue

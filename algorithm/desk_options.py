@@ -75,7 +75,7 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
             und = self._symbol(p["ticker"])
             if und is not None and not self.securities.contains_key(und):
                 try:                                       # option plans on names not yet subscribed
-                    und = self.add_equity(p["ticker"], self.res).symbol
+                    und = self.add_equity(p["ticker"], self.res, data_normalization_mode=DataNormalizationMode.RAW).symbol
                     self.sym_of[p["ticker"]] = und
                 except Exception:
                     und = None
@@ -92,10 +92,18 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
             picks = [c for c in chain if lo <= (c.id.date.date() - self.time.date()).days <= hi
                      and (c.id.option_right == OptionRight.CALL) == p["call"] and 0.7 * S <= c.id.strike_price <= 1.3 * S]
             picks = sorted(picks, key=lambda c: abs(c.id.strike_price - S))[:12]
+            added = []
             for c in picks:
-                if not self.securities.contains_key(c):
+                if self.securities.contains_key(c):
+                    added.append(c)
+                    continue
+                try:
                     self.add_option_contract(c, Resolution.MINUTE)
-            self.option_candidates[(p["ticker"], p["kind"], p["call"])] = picks
+                    added.append(c)
+                except Exception as exc:                   # never let one refused contract stop the algorithm
+                    self.debug(f"option contract refused for {p['ticker']}: {exc}")
+                    break
+            self.option_candidates[(p["ticker"], p["kind"], p["call"])] = added
 
     def options_execute(self):
         if self.is_warming_up or not self.option_plans or self.breaker_on or not self._feed_check():
