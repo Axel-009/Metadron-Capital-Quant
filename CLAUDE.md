@@ -10,7 +10,7 @@ disagrees with this file, THIS file wins; e.g. its corridor section was linear a
 ## Layout
 
 ```
-algorithm/              QuantConnect LEAN algorithm: main (heartbeat + wiring), corridor, risk_budget, regime, forward_rm,
+algorithm/              QuantConnect LEAN algorithm: main (heartbeat + wiring; desk_guard + desk_options mixins — QC caps files at 64k chars), corridor, risk_budget, regime, forward_rm,
                         fundamentals, universe, profiles, decision, alpha, options, protection, feed_guard, schedule, sectors, rotation,
                         market_map, macro_regime, sector_rotation
 agents/                 market_reasoning.md, roster.yaml, llm.py, qc_api.py, macro_agent, events_agent, kronos_agent,

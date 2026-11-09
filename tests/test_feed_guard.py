@@ -68,3 +68,12 @@ def test_phase1_reference_is_the_spx_index():
     assert not st.ok and any("SPY/SPX basis" in r for r in st.reasons)
     st = fg.FeedGuard().check(10, {"SPY": 10, "SPX": 2}, 500.0, 5000.0, "SPX")
     assert any("SPX: stale" in r for r in st.reasons)                       # reference held to the 5-min rule
+
+
+def test_algorithm_files_fit_quantconnect_limit():
+    """QuantConnect rejects project files over 64,000 characters (found on the first deploy)."""
+    import glob
+    algo = os.path.join(os.path.dirname(__file__), "..", "algorithm")
+    for path in glob.glob(os.path.join(algo, "*.py")):
+        n = len(open(path, encoding="utf-8").read())
+        assert n < 60_000, f"{os.path.basename(path)} has {n} characters — split it before QuantConnect rejects it"
