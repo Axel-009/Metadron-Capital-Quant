@@ -85,3 +85,14 @@ def test_algorithm_class_has_only_the_quantconnect_base():
     tree = ast.parse(open(os.path.join(os.path.dirname(__file__), "..", "algorithm", "main.py")).read())
     cls = [n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "MetadronCorridor"][0]
     assert [b.id for b in cls.bases if isinstance(b, ast.Name)] == ["QCAlgorithm"]
+
+
+def test_persistent_basis_shift_reanchors_instead_of_halting_forever():
+    """A structural SPY/reference shift (dividend, index change) must not halt trading permanently."""
+    g = fg.FeedGuard()
+    t = warm(g)
+    shifted = 5000.0 * 1.01                                   # reference now permanently 1% higher vs SPY
+    states = [g.check(t + i, {"SPY": t + i, "MES": t + i}, 500.0, shifted).ok for i in range(1, 12)]
+    assert states[0] is False                                 # a sudden disagreement still halts at once
+    assert g.rebased == 1 and states[-1] is True              # re-anchored after 4 fresh checks, then clears
+    assert not g.check(t + 20, {"SPY": t + 20, "MES": t + 20}, 500.0, shifted * 1.02).ok   # new jump halts again

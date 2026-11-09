@@ -155,6 +155,7 @@ class MetadronCorridor(QCAlgorithm):
     _last_bar = GuardMixin._last_bar
     _is_raw = GuardMixin._is_raw
     on_dividends = GuardMixin.on_dividends
+    _has_minute = GuardMixin._has_minute
     _ensure_raw = GuardMixin._ensure_raw
     on_splits = GuardMixin.on_splits
     _ensure_minute = GuardMixin._ensure_minute
@@ -687,7 +688,7 @@ class MetadronCorridor(QCAlgorithm):
         if self.is_warming_up or self.state is None:
             return
         if not self._feed_check():
-            self.debug("FEED HALT: closing-auction orders skipped (market-on-close has no price collar)")
+            self.debug("FEED HALT: closing-auction orders skipped — " + "; ".join(self.feed.state.reasons[:3]))
             return
         self._trade_equities(1.0, moc=True)
         self._sync_stops()

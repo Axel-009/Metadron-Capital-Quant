@@ -116,10 +116,15 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
         keys = {"SPY": self.spy}
         mes_sym = self.future.mapped if self.future is not None else self.ref_index
         ref_name = "MES" if self.future is not None else "SPX"
+        if mes_sym is not None and self.future is None and self._last_bar(mes_sym) is None:
+            self.ref_missing = getattr(self, "ref_missing", 0) + 1
+            if self.ref_missing >= 3:                      # no index data at this resolution: drop the cross-check
+                self.debug("FEED: SPX index data unavailable — cross-feed check disabled, staleness checks continue")
+                self.ref_index, mes_sym = None, None
         if mes_sym is not None:
             keys[ref_name] = mes_sym
-        for kv in self.portfolio:
-            if kv.value.invested and kv.value.type == SecurityType.EQUITY:
+        for kv in self.portfolio:                          # held names: only those with live minute data
+            if kv.value.invested and kv.value.type == SecurityType.EQUITY and self._has_minute(kv.key):
                 keys[kv.key.value] = kv.key
         last = {k: self._last_bar(s) for k, s in keys.items()}
         spy_px = self.securities[self.spy].price
@@ -133,6 +138,12 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
             self.debug("FEED OK: halt cleared")
         self.plot("Feed", "ok", 1.0 if st.ok else 0.0)
         return st.ok
+
+    def _has_minute(self, sym) -> bool:
+        try:
+            return any(c.resolution == Resolution.MINUTE for c in self.securities[sym].subscriptions)
+        except Exception:
+            return False
 
     def _drop_stop(self, sym):
         """Cancel a name's resting stop before trading it (re-placed by _sync_stops once no order is working),

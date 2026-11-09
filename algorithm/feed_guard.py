@@ -33,6 +33,7 @@ BASIS_TOL = 0.005             # 0.5% SPY/MES ratio deviation from its rolling me
 BASIS_WINDOW = 30
 JUMP_TOL = 0.03               # 3% move between 30-minute checks in one feed only
 CLEAR_CHECKS = 2
+REBASE_CHECKS = 4             # a basis shift that persists 4 fresh checks (~2h) is structural: re-anchor, don't halt forever
 COLLAR_BPS = {"EQUITY": 30.0, "FUTURE": 20.0}
 POSITION_STOP = 0.10          # = protection.CLOSE_DD
 FUTURES_NAV_LOSS = 0.08       # = risk_budget.DD_CLOSE: resting MES stop where the overlay alone loses ~8% NAV
@@ -53,6 +54,8 @@ class FeedGuard:
         self.ratios: deque = deque(maxlen=BASIS_WINDOW)
         self.last: Dict[str, float] = {}
         self.state = GuardState()
+        self.dev_streak = 0
+        self.rebased = 0
 
     def check(self, now_minutes: float, last_bar_minutes: Dict[str, Optional[float]],
               spy: Optional[float], mes: Optional[float], ref_name: str = "MES") -> GuardState:
@@ -67,11 +70,19 @@ class FeedGuard:
                 reasons.append(f"{name}: stale {now_minutes - t:.0f} min")
         if spy and mes and spy > 0 and mes > 0:
             r = mes / spy
-            if len(self.ratios) >= 5:
-                med = statistics.median(self.ratios)
-                if abs(r / med - 1) > BASIS_TOL:
-                    reasons.append(f"SPY/{ref_name} basis off {r / med - 1:+.2%} (feeds disagree)")
-            if not reasons:
+            fresh = not reasons                            # staleness checks passed this time
+            off = len(self.ratios) >= 5 and abs(r / statistics.median(self.ratios) - 1) > BASIS_TOL
+            if off and fresh:
+                self.dev_streak += 1
+                if self.dev_streak >= REBASE_CHECKS:       # persistent, fresh, both feeds moving: structural
+                    self.ratios.clear()                    # (dividends, index rebalances) — re-anchor
+                    self.dev_streak, off = 0, False
+                    self.rebased += 1
+            elif not off:
+                self.dev_streak = 0
+            if off:
+                reasons.append(f"SPY/{ref_name} basis off {r / statistics.median(self.ratios) - 1:+.2%} (feeds disagree)")
+            elif fresh:
                 self.ratios.append(r)
             for name, px, other, opx in (("SPY", spy, ref_name, mes), (ref_name, mes, "SPY", spy)):
                 p0, o0 = self.last.get(name), self.last.get(other)
