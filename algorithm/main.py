@@ -318,10 +318,22 @@ class MetadronCorridor(QCAlgorithm):
         self._limit(contract, delta, "FUTURE", tag)
 
     def on_symbol_changed_events(self, symbol_changed_events):
-        """Roll the futures position into the newly mapped contract."""
-        for _, changed in symbol_changed_events.items():
-            old, new = changed.old_symbol, changed.new_symbol
-            qty = self.portfolio[old].quantity
+        """Roll the MES position into the newly mapped contract (phase 2).
+
+        LEAN also raises this event for equity ticker changes (renames / mergers, e.g. DOW in 2017); those need
+        no action — LEAN carries the holding over — and their old ticker is a plain string that cannot be used
+        to index the portfolio. So only the continuous future is handled, with tickers resolved to Symbols."""
+        if self.future is None:
+            return
+        for symbol, changed in symbol_changed_events.items():
+            if symbol != self.future.symbol:
+                continue
+            try:
+                old, new = self.symbol(changed.old_symbol), self.symbol(changed.new_symbol)
+            except Exception as exc:
+                self.debug(f"roll: cannot resolve {changed.old_symbol} → {changed.new_symbol}: {exc}")
+                continue
+            qty = self.portfolio[old].quantity if self.portfolio.contains_key(old) else 0
             self._drop_stop(old)                           # no orphan stop on the expiring contract
             if qty != 0:
                 self.liquidate(old, tag="roll")
