@@ -57,7 +57,14 @@ def deploy(project_id: int, backtest: bool = False, name: str = "") -> bool:
     if backtest:
         bt = qc_api.post("backtests/create", {"projectId": project_id, "compileId": cid,
                                               "backtestName": name or f"ci {time.strftime('%Y-%m-%d %H:%M')}"})
-        print("backtest:", (bt or {}).get("backtest", {}).get("backtestId"))
+        bid = (bt or {}).get("backtest", {}).get("backtestId")
+        print("backtest:", bid)
+        if not bid:
+            errs = "; ".join((bt or {}).get("errors") or ["no backtest id returned"])
+            print(f"::error::Code pushed and compiled, but the backtest did not start: {errs} "
+                  "(stop the running backtest in QuantConnect, then re-run this workflow or press Backtest there).")
+            return False
+        print(f"link: https://www.quantconnect.com/project/{project_id}/{bid}")
     return True
 
 
