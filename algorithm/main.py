@@ -374,7 +374,14 @@ class MetadronCorridor(QCAlgorithm):
         return max(self.portfolio.total_portfolio_value, 1.0)
 
     def _weight(self, symbol):
-        return self.portfolio[symbol].holdings_value / self._nav() if symbol is not None else 0.0
+        h = self._holding(symbol)
+        return h.holdings_value / self._nav() if h is not None else 0.0
+
+    def _holding(self, symbol):
+        """Portfolio holding, or None for a symbol that is not subscribed (QuantConnect raises on those)."""
+        if symbol is None or not self.securities.contains_key(symbol):
+            return None
+        return self.portfolio[symbol]
 
     def _symbol(self, ticker):
         return self.rot_symbols.get(ticker) or self.sym_of.get(ticker)
@@ -572,7 +579,8 @@ class MetadronCorridor(QCAlgorithm):
         targets.update(self._etf_sleeve(prices, closes))
         targets = self._fit_alpha_budget(targets, prices)
         for t, s in list(self.sym_of.items()) + list(self.rot_symbols.items()):      # exit what is no longer wanted
-            if t not in targets and self.portfolio[s].invested and self.portfolio[s].quantity > 0 \
+            h = self._holding(s)
+            if t not in targets and h is not None and h.invested and h.quantity > 0 \
                     and s.security_type == SecurityType.EQUITY:
                 targets[t] = 0.0
         self.targets = targets
@@ -840,6 +848,12 @@ class MetadronCorridor(QCAlgorithm):
         self.option_candidates = {}
         for p in self.option_plans:
             und = self._symbol(p["ticker"])
+            if und is not None and not self.securities.contains_key(und):
+                try:                                       # option plans on names not yet subscribed
+                    und = self.add_equity(p["ticker"], self.res).symbol
+                    self.sym_of[p["ticker"]] = und
+                except Exception:
+                    und = None
             if und is None or not self.securities.contains_key(und):
                 continue
             S = self.securities[und].price
@@ -868,6 +882,8 @@ class MetadronCorridor(QCAlgorithm):
             cands = self.option_candidates.get((p["ticker"], p["kind"], p["call"]), [])
             und = self._symbol(p["ticker"])
             if not cands or und is None:
+                continue
+            if not self.securities.contains_key(und):
                 continue
             S = self.securities[und].price
             quotes = []
@@ -949,6 +965,8 @@ class MetadronCorridor(QCAlgorithm):
             sym = self.sym_of.get(t)
             if sym is None:
                 continue
+            if not self.securities.contains_key(sym):
+                continue                                   # dropped from the universe since research
             price = self.securities[sym].price
             rows[t] = (getattr(d, "features", {}), price)
             if t in self.scores:
