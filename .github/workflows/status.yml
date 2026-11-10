@@ -1,0 +1,21 @@
+# Read-only: reports the newest QuantConnect backtest (status, statistics, orders, key log lines).
+# Runs on demand (Run workflow) or when .github/status-trigger changes.
+name: backtest-status
+on:
+  push:
+    branches: [main]
+    paths: [".github/status-trigger", "agents/qc_status.py"]
+  workflow_dispatch:
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: python agents/qc_status.py
+        env:
+          QC_USER_ID: ${{ secrets.QC_USER_ID }}
+          QC_API_TOKEN: ${{ secrets.QC_API_TOKEN }}
+          QC_PROJECT_ID: ${{ secrets.QC_PROJECT_ID }}
