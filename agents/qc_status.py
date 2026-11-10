@@ -45,7 +45,7 @@ def logs(pid: int, bid: str) -> list:
                                                  "end": start + 200, "query": " "}) or {}
         page = res.get("logs") or res.get("backtestLogs") or []
         if start == 0 and not page:
-            print("  (log endpoint keys:", sorted(res.keys()), "errors:", res.get("errors"), ")")
+            print("  (log endpoint keys:", sorted(res.keys()), "length:", res.get("length"), ")")
         out += [str(x) for x in page]
         if len(page) < 200:
             break
@@ -69,12 +69,16 @@ def chart_tail(pid: int, bid: str, name: str, n: int = 4) -> None:
         return
     print(f"CHART {name}:")
     for sname, sr in series.items():
-        vals = []
+        vals, xs = [], []
         for pt in sr.get("values") or []:
             try:
                 vals.append(float(pt[1] if isinstance(pt, (list, tuple)) else pt.get("y")))
+                xs.append(float(pt[0] if isinstance(pt, (list, tuple)) else pt.get("x")))
             except (TypeError, ValueError, IndexError):
                 pass
+        if xs:
+            d = lambda x: time.strftime("%Y-%m-%d", time.gmtime(x))
+            print(f"  {sname}: algorithm dates {d(xs[0])} → {d(xs[-1])}")
         if vals:
             print(f"  {sname}: n={len(vals)} first={vals[0]:.4g} last={vals[-1]:.4g} min={min(vals):.4g} "
                   f"max={max(vals):.4g} tail={[round(v, 4) for v in vals[-n:]]}")
@@ -109,7 +113,7 @@ def report(pid: int, bid: str = "") -> int:
         for o in od[:8] + od[-8:]:
             print(f"  {str(o.get('createdTime') or o.get('time'))[:19]} {_sym(o):<8} qty={o.get('quantity')} "
                   f"px={o.get('price')} status={o.get('status')} | {str(o.get('tag'))[:110]}")
-    for chart in ("Decisions", "Feed", "Data health", "Leverage", "Regime", "Rm vs corridor", "Risk"):
+    for chart in ("Strategy Equity", "Decisions", "Feed", "Data health", "Leverage", "Regime", "Rm vs corridor", "Risk"):
         chart_tail(pid, bid, chart)
     lg = logs(pid, bid)
     print(f"LOG lines read: {len(lg)}")
