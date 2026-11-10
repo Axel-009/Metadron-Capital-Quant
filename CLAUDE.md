@@ -295,6 +295,12 @@ when implied ≤ realised vol, event tail hedges (≥ 3% positions with an event
 One open position per (ticker, kind, side). Protection: position −6% from peak → trim half (once per peak), −10% →
 close; long options close at ≤ 2 DTE, −50% premium stop (not LEAPS), LEAPS rolled under 90 DTE; hedges and
 straddles closed after the event.
+A trim / stop / filled resting stop holds for a 14-day cooldown (`PROTECT_COOLDOWN_DAYS`): the target is capped at the
+shares left, so research cannot buy it back next morning; unfilled protective sells are re-priced every risk check.
+Option exits are limit orders (mid ∓ 0.3 × half-spread; bid/ask at ≤ 2 DTE; market only on expiry day); unfilled option
+entries are cancelled at 15:30; a spread's short leg is always covered. Implied vol is compared with TOTAL realised vol.
+Agent files (macro, events, scenarios, Kronos) dated > 10 days from the algorithm clock are ignored (no look-ahead in
+backtests). 10-year yield: macro agent → QuantConnect US Treasury curve → 4.2% default. ML labels use total-return prices.
 
 ### Alpha models (code: `algorithm/alpha.py`) — free / open source, inside the algorithm
 

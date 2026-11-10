@@ -96,3 +96,64 @@ def test_persistent_basis_shift_reanchors_instead_of_halting_forever():
     assert states[0] is False                                 # a sudden disagreement still halts at once
     assert g.rebased == 1 and states[-1] is True              # re-anchored after 4 fresh checks, then clears
     assert not g.check(t + 20, {"SPY": t + 20, "MES": t + 20}, 500.0, shifted * 1.02).ok   # new jump halts again
+
+
+# ---------------------------------------------------------------- protection cooldown (trim / stop is not undone)
+def _guard_mixin():
+    import sys, types
+    sys.modules.setdefault("AlgorithmImports", types.ModuleType("AlgorithmImports"))
+    import desk_guard
+    return desk_guard.GuardMixin
+
+
+def _fake_algo(qty=100, price=50.0, nav=100_000.0):
+    import datetime as dt, types
+    G = _guard_mixin()
+    sym = types.SimpleNamespace(value="ABC")
+    hold = types.SimpleNamespace(quantity=qty)
+    sec = types.SimpleNamespace(price=price)
+    a = types.SimpleNamespace(protect={}, targets={"ABC": 0.05}, time=dt.datetime(2024, 3, 4, 10, 30), orders=[])
+    a.securities = types.SimpleNamespace(contains_key=lambda s: s is sym, __getitem__=None)
+    a.securities = type("S", (), {"contains_key": lambda self, s: s is sym, "__getitem__": lambda self, s: sec})()
+    a._symbol = lambda t: sym if t == "ABC" else None
+    a._nav = lambda: nav
+    a._holding = lambda s: hold if s is sym else None
+    a._limit = lambda s, q, kind, tag: a.orders.append((s.value, q, tag))
+    for name in ("_protect_note", "_apply_protect", "_reprice_protect", "_ten_year"):
+        setattr(a, name, getattr(G, name).__get__(a))
+    return a, hold, sec
+
+
+def test_trim_holds_through_next_research_and_expires():
+    import datetime as dt
+    a, hold, sec = _fake_algo()
+    a._protect_note("ABC", 50, "TRIM drawdown 6%")                 # −6% trim: keep 50 of 100 shares
+    assert abs(a.targets["ABC"] - 0.025) < 1e-9                    # today's target capped at the kept shares
+    a._reprice_protect()
+    assert a.orders[-1][:2] == ("ABC", -50)                        # the protective sell
+    a._reprice_protect()
+    assert len(a.orders) == 2                                      # unfilled → re-issued at the current price
+    hold.quantity = 50
+    a._reprice_protect()
+    assert len(a.orders) == 2                                      # filled → nothing more
+    a.time += dt.timedelta(days=1)                                 # next morning: research wants 5% again
+    assert abs(a._apply_protect({"ABC": 0.05})["ABC"] - 0.025) < 1e-9
+    a.time += dt.timedelta(days=20)                                # cooldown over → free again
+    assert a._apply_protect({"ABC": 0.05})["ABC"] == 0.05 and "ABC" not in a.protect
+
+
+def test_stop_blocks_rebuy_for_the_cooldown():
+    a, hold, sec = _fake_algo()
+    a._protect_note("ABC", 0, "CLOSE drawdown 10%")
+    assert a.targets["ABC"] == 0.0
+    a._reprice_protect()
+    assert a.orders[-1][:2] == ("ABC", -100)
+    assert a._apply_protect({"ABC": 0.08})["ABC"] == 0.0
+    assert a._apply_protect({})["ABC"] == 0.0
+
+
+def test_ten_year_default_and_macro_value():
+    a, _, _ = _fake_algo()
+    assert a._ten_year({}) == 0.042
+    assert a._ten_year({"treasury_10y": 0.029}) == 0.029
+    assert a._ten_year({"treasury_10y": 5.0}) == 0.042            # nonsense reading → default

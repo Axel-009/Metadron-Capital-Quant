@@ -8,6 +8,9 @@
     event tail hedge         for a long equity position ≥ 3% NAV with a known event (earnings, binary) within
                              5 days: buy a ~5% OTM put expiring after the event, premium ≤ 0.3% NAV per name;
                              the hedge is closed once the event has passed (days_to_event < 0)
+    cooldown                 a trim or a stop holds for PROTECT_COOLDOWN_DAYS: the name's target is capped at the
+                             shares left (0 after a close / resting-stop fill), so the next morning's research
+                             cannot buy the position straight back
     daily-loss breaker       NAV ≤ day-open NAV × (1 − 3%) → no new entries today and halve the MES overlay
     CVaR check               book CVaR95 (normal: 2.063σ) ≤ 1.5 × regime VaR ceiling, else scale beta down
 """
@@ -29,6 +32,7 @@ HEDGE_EVENT_DAYS = 5
 HEDGE_OTM = 0.05
 HEDGE_PREMIUM = 0.003
 HEDGE_DTE = (7, 45)
+PROTECT_COOLDOWN_DAYS = 14      # calendar days a trimmed / stopped name may not be bought back (≈ 10 sessions)
 DAILY_LOSS_BREAKER = 0.03
 CVAR_Z = 2.063                  # CVaR95 / σ for a normal distribution
 Z95 = 1.645

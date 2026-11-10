@@ -4,7 +4,7 @@ from AlgorithmImports import *
 
 import json
 import math
-from datetime import timedelta
+from datetime import timedelta, date as _date
 
 from corridor import target_leverage, should_rebalance, annualised_drift, realised_vol, R_LOW, R_HIGH, RISK_FREE, MAX_GROSS_LEVERAGE
 from risk_budget import (beta_cap, hard_stops, daily_var, check_alpha_trade, AlphaPosition, momentum_confirms,
@@ -35,6 +35,7 @@ CASHFLOW_ETFS = {"income": ["TLTW", "JEPI", "JEPQ", "DIVO"], "commodities": ["GL
 FI_ETFS = {"TREASURIES": ["TLT", "IEF"], "OTHER": ["SHY"]}
 ALL_ETFS = {t for v in list(CASHFLOW_ETFS.values()) + list(FI_ETFS.values()) for t in v}
 MIN_TRADE = 0.005
+AGENT_MAX_AGE_DAYS = 10         # agent files dated further from the algorithm clock are ignored (no look-ahead)
 STOP_COOLDOWN_DAYS = 5          # after a −8% close-out, stay flat 5 days, then re-arm at the new NAV
 
 
@@ -121,6 +122,12 @@ class MetadronCorridor(QCAlgorithm):
         self._init_universe()
         self.wf, self.quality, self.scorecard = al.WalkForward(), al.QualityEnsemble(), al.Scorecard()
         self.protector = pr.Protector()
+        self.protect = {}                 # ticker → {qty, until, why}: trims / stops hold for a cooldown
+        self.adj_factor = {}              # ticker → cumulative split × dividend factor (total-return prices)
+        try:                              # 10-year Treasury yield for the top-down valuation (ERP, max P/E)
+            self.ust = self.add_data(USTreasuryYieldCurveRate, "USTYCR", Resolution.DAILY).symbol
+        except Exception:
+            self.ust = None
         self.targets, self.decisions, self.option_plans, self.option_candidates = {}, {}, [], {}
         self.option_book = {}             # Symbol → {kind, underlying, entry_dte, cost, ticker}
         self.hedged = set()
@@ -165,12 +172,19 @@ class MetadronCorridor(QCAlgorithm):
     _cancel_working = GuardMixin._cancel_working
     _limit = GuardMixin._limit
     _sync_stops = GuardMixin._sync_stops
+    on_order_event = GuardMixin.on_order_event
+    _protect_note = GuardMixin._protect_note
+    _apply_protect = GuardMixin._apply_protect
+    _reprice_protect = GuardMixin._reprice_protect
+    _ten_year = GuardMixin._ten_year
     _sleeve_of = OptionsDeskMixin._sleeve_of
     _option_plans = OptionsDeskMixin._option_plans
     _option_premium = OptionsDeskMixin._option_premium
     options_select = OptionsDeskMixin.options_select
     options_execute = OptionsDeskMixin.options_execute
     _option_exits = OptionsDeskMixin._option_exits
+    _option_close = OptionsDeskMixin._option_close
+    _open_orders = OptionsDeskMixin._open_orders
 
     # ------------------------------------------------------------------ universe (step 3)
     def _init_universe(self):
@@ -258,7 +272,7 @@ class MetadronCorridor(QCAlgorithm):
         if getattr(self, "vix", None) is not None:
             v = self._closes(self.vix, 3)
             vix = v[-1] if v else None
-        self.td = top_down([d for _, d in rows.values()], treasury_10y=macro.get("treasury_10y", 0.042), vix=vix)
+        self.td = top_down([d for _, d in rows.values()], treasury_10y=self._ten_year(macro), vix=vix)
         scores = {}
         for t, (sym, d) in rows.items():
             code = d.get("sector_code")
@@ -314,7 +328,8 @@ class MetadronCorridor(QCAlgorithm):
             self.object_store.save("metadron/universe_scores.json", json.dumps(report, default=str))
         except Exception:
             pass
-        self.debug(f"UNIVERSE {h} | EY {td.earnings_yield:.2%} ERP {td.erp:+.2%} {td.regime} | "
+        self.debug(f"UNIVERSE {h} | EY {td.earnings_yield:.2%} 10y {self._ten_year(self.macro_inputs()):.2%} "
+                   f"ERP {td.erp:+.2%} {td.regime} | "
                    + " ".join(f"{k}:{','.join(v[:5])}" for k, v in sl.by_sleeve.items()))
 
     def subsector_fundamentals(self) -> dict:
@@ -326,7 +341,7 @@ class MetadronCorridor(QCAlgorithm):
 
     def macro_inputs(self) -> dict:
         """Numeric readings written by the macro agent (FRED, GMTF, Kronos) — {} if absent/stale."""
-        raw = self._store_read("metadron/macro_inputs.json")
+        raw = self._agent_read("metadron/macro_inputs.json")
         if not raw:
             return {}
         try:
@@ -410,8 +425,21 @@ class MetadronCorridor(QCAlgorithm):
             pass
         return None
 
-    def _store_json(self, key):
+    def _agent_read(self, key):
+        """Agent files (macro, events, scenarios, Kronos) carry as_of. A file dated more than AGENT_MAX_AGE_DAYS
+        from the algorithm clock is ignored: a backtest must never read today's readings (look-ahead), and a
+        live algorithm must not act on a stale file. Undated files count only live."""
         raw = self._store_read(key)
+        if not raw:
+            return None
+        try:
+            age = abs((self.time.date() - _date.fromisoformat(str(json.loads(raw).get("as_of"))[:10])).days)
+        except Exception:
+            age = 0 if getattr(self, "live_mode", False) else 999
+        return raw if age <= AGENT_MAX_AGE_DAYS else None
+
+    def _store_json(self, key):
+        raw = self._agent_read(key)
         try:
             return json.loads(raw) if raw else {}
         except Exception:
@@ -474,7 +502,7 @@ class MetadronCorridor(QCAlgorithm):
         hyg, lqd = self._closes(self.rot_symbols.get("HYG"), 800), self._closes(self.rot_symbols.get("LQD"), 800)
         reg = self.regime_model.classify(long, vix_hist or None, hyg or None, lqd or None)
         macro, ev = self.macro_inputs(), self.events()
-        kron = al.kronos_alpha(self._store_read("metadron/kronos.json"))
+        kron = al.kronos_alpha(self._agent_read("metadron/kronos.json"))
         ey = macro.get("earnings_yield")
         if ey is None and self.td is not None and self.td.n_names >= 100:
             ey = self.td.earnings_yield
@@ -525,6 +553,7 @@ class MetadronCorridor(QCAlgorithm):
                     targets[a.ticker] = a.target_weight
         targets.update(self._etf_sleeve(prices, closes))
         targets = self._fit_alpha_budget(targets, prices)
+        targets = self._apply_protect(targets)             # trims / stops hold for the cooldown
         for t, s in list(self.sym_of.items()) + list(self.rot_symbols.items()):      # exit what is no longer wanted
             h = self._holding(s)
             if t not in targets and h is not None and h.invested and h.quantity > 0 \
@@ -721,11 +750,9 @@ class MetadronCorridor(QCAlgorithm):
             a = self.protector.update(sym.value, self.securities[sym].price, h.quantity)
             if a is None:
                 continue
-            qty = -int(h.quantity * a.fraction) if a.kind == "TRIM" else -int(h.quantity)
-            if qty:
-                self._limit(sym, qty, "EQUITY", f"PROTECT {a.kind} {sym.value}: {a.reason}")
-            if sym.value in self.targets:
-                self.targets[sym.value] = self._weight(sym) * (1 - a.fraction) if a.kind == "TRIM" else 0.0
+            keep = int(h.quantity * (1 - a.fraction)) if a.kind == "TRIM" else 0
+            self._protect_note(sym.value, keep, f"{a.kind} {a.reason}")
+        self._reprice_protect()                            # (re-)issue protective sells at the current price
         self._option_exits()
         ev = self.events()
         for kv in self.portfolio:
@@ -753,8 +780,8 @@ class MetadronCorridor(QCAlgorithm):
                 continue
             if not self.securities.contains_key(sym):
                 continue                                   # dropped from the universe since research
-            price = self.securities[sym].price
-            rows[t] = (getattr(d, "features", {}), price)
+            price = self.securities[sym].price / (self.adj_factor.get(t) or 1.0)   # total-return price:
+            rows[t] = (getattr(d, "features", {}), price)                        # splits / dividends ≠ returns
             if t in self.scores:
                 qrows[t] = (al.quality_features(self.scores[t]), price)
         matured = self.wf.observe(rows)
@@ -858,7 +885,7 @@ class MetadronCorridor(QCAlgorithm):
         uso = prices.get("USO")
         if uso and len(uso) > 22:
             readings.setdefault("commodities_21d", uso[-1] / uso[-22] - 1)
-        scen_raw = self._store_read("metadron/scenarios.json")
+        scen_raw = self._agent_read("metadron/scenarios.json")
         scenarios = None
         if scen_raw:
             try:

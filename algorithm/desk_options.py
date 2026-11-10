@@ -26,7 +26,8 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
         """Options on SINGLE NAMES: rotation calls into the favoured GICS sectors, escalation calls on the best
         Energy names, LEAPS / straddles on crashed names, alpha calls on the strongest names."""
         plans = []
-        approved = sorted((d for d in self.decisions.values() if d.approved), key=lambda d: -d.composite)
+        approved = sorted((d for d in self.decisions.values() if d.approved and d.ticker not in self.protect),
+                          key=lambda d: -d.composite)             # no calls on names in a protection cooldown
         by_sector = {}
         for d in approved:
             by_sector.setdefault(d.sector, []).append(d)
@@ -34,7 +35,7 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
             if a.kind == "ROTATE":                       # a theme crashed: calls on the best names of the destination sectors
                 for d in by_sector.get(a.ticker, [])[:2]:
                     plans.append(dict(kind="ROTATION_CALL", ticker=d.ticker, call=True, delta=0.5, dte=(45, 120),
-                                      budget=None, mu=d.mu_alpha + 0.04, rv=d.idio_vol, iv_max=1.25,
+                                      budget=None, mu=d.mu_alpha + 0.04, iv_max=1.25,
                                       reason=f"rotation into {a.ticker}: composite {d.composite:.2f}"))
             elif a.kind == "ESCALATION_CALLS":
                 names = [d.ticker for d in by_sector.get(a.ticker, [])[:2]] or \
@@ -51,7 +52,7 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
                                       budget=a.premium / 2, mu=0.0, reason=a.reason, straddle=True))
         for d in approved[:5]:                           # alpha calls: only when implied ≤ realised (cheap convexity)
             plans.append(dict(kind="ALPHA_CALL", ticker=d.ticker, call=True, delta=0.6, dte=(30, 90),
-                              budget=None, mu=d.mu_alpha + 0.04, rv=d.idio_vol, iv_max=1.0,
+                              budget=None, mu=d.mu_alpha + 0.04, iv_max=1.0,
                               reason=f"top composite {d.composite:.2f} ({d.sector})"))
         for p in plans:
             p["sleeve"] = self._sleeve_of(p["ticker"])
@@ -111,8 +112,9 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
         nav, done = self._nav(), []
         for p in self.option_plans:
             if any(m["ticker"] == p["ticker"] and m["kind"] == p["kind"] and m.get("call") == p["call"]
-                   and self.portfolio[s].quantity != 0 for s, m in self.option_book.items()):
-                done.append(p)                             # idempotent: one open position per (ticker, kind, side)
+                   and (self.portfolio[s].quantity != 0 or self._working(s)) for s, m in self.option_book.items()):
+                done.append(p)                             # idempotent: one open position OR working order per
+                                                           # (ticker, kind, side) — never stack entries
                 continue
             cands = self.option_candidates.get((p["ticker"], p["kind"], p["call"]), [])
             und = self._symbol(p["ticker"])
@@ -133,7 +135,8 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
                 continue
             q = pick.quote
             T = q.dte / 365
-            rv = p.get("rv") or name_vol(self._closes(und, 64), 63) or pick.iv
+            rv = p.get("rv") or name_vol(self._closes(und, 64), 63) or pick.iv   # TOTAL realised vol (implied vol is
+                                                                               # total too; never compare with idio)
             if p.get("iv_max") is not None and pick.iv > p["iv_max"] * rv:
                 continue                                   # alpha / rotation calls only when implied vol is not rich
             prob, pnl = op.real_world(S, q.strike, T, max(rv, 0.05), q.mid, p["mu"], p["call"])
@@ -166,27 +169,74 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
             done.append(p)
         self.option_plans = [p for p in self.option_plans if p not in done]
 
+    def _open_orders(self, sym):
+        try:
+            return list(self.transactions.get_open_orders(sym))
+        except Exception:
+            return []
+
+    def _option_close(self, sym, dte, tag):
+        """Close an option position with a limit order (option spreads are wide — never a raw market order):
+        mid ∓ 0.3 × half-spread; at the bid / ask when ≤ 2 DTE; market only on expiry day or with no quote.
+        Re-priced on every risk check until flat."""
+        h = self.portfolio[sym]
+        if h.quantity == 0:
+            return
+        self._cancel_working(sym)
+        s = self.securities[sym]
+        bid, ask = getattr(s, "bid_price", 0) or 0, getattr(s, "ask_price", 0) or 0
+        if dte <= 0 or bid <= 0 or ask < bid:
+            if dte <= hb.EXPIRY_CLOSE_DTE:                 # must be out before expiry even without a quote
+                self.liquidate(sym, tag=tag)
+            return
+        mid, half, sell = (bid + ask) / 2, (ask - bid) / 2, h.quantity > 0
+        if dte <= hb.EXPIRY_CLOSE_DTE:
+            px = bid if sell else ask
+        else:
+            px = mid - hb.OPTION_LIMIT_FRACTION * half if sell else mid + hb.OPTION_LIMIT_FRACTION * half
+        self.limit_order(sym, -h.quantity, max(round(px, 2), 0.01), tag=tag)
+
     def _option_exits(self, only_expiry=False):
         if not self.feed_ok and not only_expiry:
             return                                         # under a feed halt only expiry closes run
         ev = self.events()
+        days = lambda s: (s.id.date.date() - self.time.date()).days
         for sym, meta in list(self.option_book.items()):
             h = self.portfolio[sym]
+            dte = days(sym)
             if h.quantity == 0:
-                if (sym.id.date.date() - self.time.date()).days < 0 or not self.transactions.get_open_orders(sym):
+                working = self._open_orders(sym)
+                if working and only_expiry:                # 15:30: an unfilled entry never rests overnight
+                    self._cancel_working(sym)
+                    working = []
+                if dte < 0 or not working:
                     self.option_book.pop(sym, None)
                 continue
-            dte = (sym.id.date.date() - self.time.date()).days
+            if meta["kind"] == "SPREAD_SHORT":
+                continue
             if only_expiry:
                 why = f"expiry in {dte}d" if dte <= hb.EXPIRY_CLOSE_DTE else None
             else:
                 why = pr.option_exit(dte, meta["entry_dte"], abs(h.holdings_value), meta["cost"], meta["kind"],
                                      ev["days"].get(meta["ticker"]))
-            if why and meta["kind"] != "SPREAD_SHORT":
-                self.liquidate(sym, tag=f"OPTION EXIT {meta['kind']} {meta['ticker']}: {why}")
+            if why:                                        # the book entry stays until the position is flat
+                self._option_close(sym, dte, f"OPTION EXIT {meta['kind']} {meta['ticker']}: {why}")
                 for s2, m2 in list(self.option_book.items()):           # close the spread's short leg with it
                     if m2["kind"] == "SPREAD_SHORT" and m2["ticker"] == meta["ticker"] and s2.id.date == sym.id.date:
-                        self.liquidate(s2, tag="close spread short leg")
-                        self.option_book.pop(s2, None)
-                self.option_book.pop(sym, None)
-
+                        self._option_close(s2, dte, "close spread short leg")
+        for s2, m2 in list(self.option_book.items()):      # a short call must always be covered by its long leg
+            short = -self.portfolio[s2].quantity
+            if m2["kind"] != "SPREAD_SHORT" or short <= 0:
+                continue
+            legs = [s for s, m in self.option_book.items() if m["kind"] == "LEAPS_SPREAD"
+                    and m["ticker"] == m2["ticker"] and s.id.date == s2.id.date]
+            if any(self._open_orders(s) for s in legs) or self._open_orders(s2):
+                continue                                   # long leg still being entered / exit already working
+            covered = sum(max(self.portfolio[s].quantity, 0) for s in legs)
+            if short > covered:
+                self._cancel_working(s2)
+                ask = getattr(self.securities[s2], "ask_price", 0) or 0
+                if ask > 0:
+                    self.limit_order(s2, int(short - covered), round(ask, 2), tag=f"cover short leg {m2['ticker']}")
+                else:
+                    self.market_order(s2, int(short - covered), tag=f"cover short leg {m2['ticker']}")

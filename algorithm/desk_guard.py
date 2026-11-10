@@ -11,6 +11,9 @@ import decision as dm
 import protection as pr
 from rotation import realised_vol as name_vol
 from sectors import SECTOR_ETF_FALLBACK
+from datetime import timedelta
+
+MIN_PROTECT_TRADE = 0.005        # NAV fraction below which a trim remainder is not re-issued
 
 
 class GuardMixin:   # plain holder of methods (not a base class — see main.py)
@@ -53,6 +56,7 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
                 continue
             if ref <= 0 or dist <= 0 or dist >= ref:
                 continue
+            self.adj_factor[sym.value] = self.adj_factor.get(sym.value, 1.0) * (ref - dist) / ref
             st = self.protector.states.get(sym.value)
             if st is not None:
                 f = (ref - dist) / ref
@@ -73,6 +77,9 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
                 continue
             if factor <= 0:
                 continue                                   # all equities trade on RAW prices
+            self.adj_factor[sym.value] = self.adj_factor.get(sym.value, 1.0) * factor
+            if sym.value in self.protect:
+                self.protect[sym.value]["qty"] = int(self.protect[sym.value]["qty"] / factor)
             st = self.protector.states.get(sym.value)
             if st is not None:
                 st.peak *= factor
@@ -81,6 +88,67 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
                     st.trimmed_at_peak *= factor
             self._drop_stop(sym)                           # re-placed at the new level by _sync_stops
             self.debug(f"SPLIT {sym.value} ×{factor:g}: protection levels rescaled")
+
+    # ------------------------------------------------------------------ protection cooldown
+    def _protect_note(self, ticker, keep_qty, why):
+        """A trim / stop holds for the cooldown: at most keep_qty shares until it expires."""
+        self.protect[ticker] = {"qty": max(int(keep_qty), 0), "why": why,
+                                "until": self.time.date() + timedelta(days=pr.PROTECT_COOLDOWN_DAYS)}
+        sym = self._symbol(ticker)
+        if sym is not None and self.securities.contains_key(sym):
+            cap = keep_qty * self.securities[sym].price / self._nav()
+            self.targets[ticker] = min(self.targets.get(ticker, cap), cap)
+
+    def on_order_event(self, order_event):
+        """A filled resting stop starts the same cooldown as a −10% close (no buy-back the next morning)."""
+        try:
+            if order_event.status != OrderStatus.FILLED:
+                return
+            m = self.stop_tickets.get(order_event.symbol)
+            if m is not None and m["ticket"].order_id == order_event.order_id \
+                    and order_event.symbol.security_type == SecurityType.EQUITY:
+                self._protect_note(order_event.symbol.value, 0, "resting stop filled")
+        except Exception:
+            pass
+
+    def _apply_protect(self, targets):
+        """Cap research targets at the shares a trim / stop left, until the cooldown expires."""
+        nav, today = self._nav(), self.time.date()
+        for t, p in list(self.protect.items()):
+            if today > p["until"]:
+                self.protect.pop(t, None)
+                continue
+            sym = self._symbol(t)
+            px = self.securities[sym].price if sym is not None and self.securities.contains_key(sym) else 0.0
+            targets[t] = min(targets.get(t, 0.0), p["qty"] * px / nav)
+        return targets
+
+    def _reprice_protect(self):
+        """Protective sells are collared limits; one left unfilled by a falling price is cancelled and re-issued
+        at the current price on every risk check (and the resting stop returns once nothing is working)."""
+        nav = self._nav()
+        for t, p in list(self.protect.items()):
+            sym = self._symbol(t)
+            h = self._holding(sym)
+            if h is None or h.quantity <= p["qty"]:
+                continue
+            price = self.securities[sym].price
+            qty = int(h.quantity) - p["qty"]
+            if price <= 0 or (p["qty"] > 0 and qty * price / nav < MIN_PROTECT_TRADE):
+                continue
+            self._limit(sym, -qty, "EQUITY", f"PROTECT {t}: {p['why']}")
+
+    def _ten_year(self, macro) -> float:
+        """10-year Treasury yield: macro agent (FRED) → QuantConnect US Treasury curve → 4.2% default."""
+        v = macro.get("treasury_10y")
+        if v is None and getattr(self, "ust", None) is not None:
+            try:
+                d = self.securities[self.ust].get_last_data()
+                y = getattr(d, "ten_year", None) if d is not None else None
+                v = float(y) / 100.0 if y else None
+            except Exception:
+                v = None
+        return v if v is not None and 0.0 < v < 0.25 else 0.042
 
     def _ensure_minute(self):
         """'mixed' mode: minute data for the names we may trade today (shortlist + held + option underlyings);
