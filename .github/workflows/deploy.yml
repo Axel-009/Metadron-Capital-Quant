@@ -22,3 +22,4 @@ jobs:
           QC_USER_ID: ${{ secrets.QC_USER_ID }}
           QC_API_TOKEN: ${{ secrets.QC_API_TOKEN }}
           QC_PROJECT_ID: ${{ secrets.QC_PROJECT_ID }}
+          QC_ORG_ID: ${{ secrets.QC_ORG_ID }}

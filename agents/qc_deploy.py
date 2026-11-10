@@ -45,7 +45,19 @@ def free_node(project_id: int) -> int:
     new one can start (one backtest node). Completed and failed backtests are never touched."""
     res = qc_api.post("backtests/list", {"projectId": project_id}) or {}
     n = 0
-    for b in res.get("backtests") or []:
+    bts = res.get("backtests") or []
+    print(f"backtests in project: {len(bts)}")
+    for b in bts[:6]:                                      # what the project holds (newest first), for diagnosis
+        print(f"  - {b.get('name')!r} status={b.get('status')!r} progress={b.get('progress')} "
+              f"completed={b.get('completed')} error={bool(b.get('error'))}")
+    org = os.environ.get("QC_ORG_ID")
+    if org:                                                # which node is busy (it may be another project / research)
+        nodes = qc_api.post("nodes/read", {"organizationId": org}) or {}
+        for kind in ("backtest", "research", "live"):
+            for nd in nodes.get(kind) or []:
+                print(f"  node[{kind}] {nd.get('name')!r} sku={nd.get('sku')} busy={nd.get('busy')} "
+                      f"usedBy={nd.get('usedBy') or nd.get('projectName')}")
+    for b in bts:
         bid = b.get("backtestId")
         if bid and still_running(b):
             ok = qc_api.post("backtests/delete", {"projectId": project_id, "backtestId": bid})
