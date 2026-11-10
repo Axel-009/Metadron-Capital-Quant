@@ -27,6 +27,7 @@ import options as op
 import protection as pr
 import alpha as al
 import feed_guard as fg
+import shorts as sh
 from desk_guard import GuardMixin
 from desk_options import OptionsDeskMixin
 
@@ -62,7 +63,8 @@ class MetadronCorridor(QCAlgorithm):
         self.set_brokerage_model(BrokerageName.INTERACTIVE_BROKERS_BROKERAGE, AccountType.MARGIN)
         p = lambda k, d: self.get_parameter(k, d)
         self.k = float(p("kelly_fraction", 1.0))
-        dm.KELLY_FRACTION = self.k
+        dm.KELLY_FRACTION = float(p("position_kelly", 2.0))   # single-name sizing: 2x Kelly (owner); the corridor
+                                                              # keeps its own k (kelly_fraction, 1.0)
         # PHASE 2: the MES futures beta overlay (corridor L − sleeve beta, ≤ 2.0x NAV) is built but OFF by default
         # (owner, Nov 2026). beta_instrument = NONE (phase 1: no overlay, corridor computed + reported only),
         # MES (phase 2: futures overlay), SPY (≤ 2x ETF overlay).
@@ -118,7 +120,7 @@ class MetadronCorridor(QCAlgorithm):
         self.rm_ewma, self.regime_model = None, RegimeModel()
         self.last_views, self.last_plan_sig, self.sector_score, self.sector_budget = {}, None, {}, {}
         self.theme_members, self.defense_names, self.watch, self.last_credit_stress = {}, [], set(), False
-        self.sym_of = {}
+        self.sym_of, self.short_set, self.etf_shortfall, self.short_share = {}, set(), 0.0, 0.0
         self._init_universe()
         self.wf, self.quality, self.scorecard = al.WalkForward(), al.QualityEnsemble(), al.Scorecard()
         self.protector = pr.Protector()
@@ -174,6 +176,7 @@ class MetadronCorridor(QCAlgorithm):
     _sync_stops = GuardMixin._sync_stops
     on_order_event = GuardMixin.on_order_event
     _protect_note = GuardMixin._protect_note
+    _protect_cap = GuardMixin._protect_cap
     _apply_protect = GuardMixin._apply_protect
     _reprice_protect = GuardMixin._reprice_protect
     _ten_year = GuardMixin._ten_year
@@ -298,7 +301,8 @@ class MetadronCorridor(QCAlgorithm):
                        self.sector_budget or None)
         sym_of = {t: sym for t, (sym, _) in rows.items()}
         self.sym_of.update(sym_of)
-        self.selected = [sym_of[t] for t in sl.names if t in sym_of]
+        self.short_set = set(sh.candidates(scores, {t: d for t, (_, d) in rows.items()}, set(sl.names) | extra))
+        self.selected = [sym_of[t] for t in list(sl.names) + sorted(self.short_set) if t in sym_of]
         self.last_score_time = self.time
         self.health = {"members": len(members) if self.universe_mode == "sp1500" else expected,
                        "expected": EXPECTED_MEMBERS if self.universe_mode == "sp1500" else expected,
@@ -546,27 +550,29 @@ class MetadronCorridor(QCAlgorithm):
 
         # decision matrix on the shortlist
         self.caps = dm.sleeve_caps()
+        self.short_share = sh.short_share(reg.regime, state.zone, reg.probs)    # bearish turn → long / short book
+        etf_targets = self._etf_sleeve(prices, closes)          # ETFs never above their buckets; shortfall → names
         self.decisions = self._decide(closes, reg.regime, ev, kron)
-        targets = {t: d.target for t, d in self.decisions.items() if d.approved}
+        targets = {t: d.target for t, d in self.decisions.items() if d.approved and d.target != 0}
         if self.rotation_trading:                               # crashed-theme names are cut; the freed weight
             for a in plan.actions:                              # flows through the sector budgets into single names
-                if a.kind == "CUT":
-                    targets[a.ticker] = a.target_weight
-        targets.update(self._etf_sleeve(prices, closes))
+                if a.kind == "CUT":                             # (a short in the name stays short)
+                    targets[a.ticker] = min(targets.get(a.ticker, a.target_weight), a.target_weight)
+        targets.update(etf_targets)
         targets = self._fit_alpha_budget(targets, prices)
         targets = self._apply_protect(targets)             # trims / stops hold for the cooldown
         for t, s in list(self.sym_of.items()) + list(self.rot_symbols.items()):      # exit what is no longer wanted
             h = self._holding(s)
-            if t not in targets and h is not None and h.invested and h.quantity > 0 \
+            if t not in targets and h is not None and h.invested and h.quantity != 0 \
                     and s.security_type == SecurityType.EQUITY:
                 targets[t] = 0.0
         self.targets = targets
 
         # market beta overlay: corridor L minus the sleeves' beta, CVaR-capped, breaker-halved
         betas = {t: d.beta for t, d in self.decisions.items()}
-        sleeve_beta = dm.book_beta({t: w for t, w in targets.items() if w > 0}, betas)
+        sleeve_beta = dm.book_beta({t: w for t, w in targets.items() if w != 0}, betas)     # net of the shorts
         book = [AlphaPosition(t, w, self.decisions[t].idio_vol if t in self.decisions else 0.25)
-                for t, w in targets.items() if w > 0]
+                for t, w in targets.items() if w != 0]
         beta_lev = state.leverage - sleeve_beta
         scale = pr.cvar_scale(state.leverage, sigma, alpha_var(book), REGIME_VAR_CEILING.get(reg.regime, 0.045))
         beta_lev *= scale
@@ -627,6 +633,13 @@ class MetadronCorridor(QCAlgorithm):
             sec = self.securities[sym]
             fund_score = max(0.0, s.gate_score - ev["penalty"].get(t, 0.0))
             nature = SUBSECTORS.get(s.subsector, {}).get("nature", SECULAR)
+            if t in self.short_set:                             # weak names: short side, only in a bearish turn
+                if self.short_share > 0:
+                    d = dm.decide_short(t, s.composite / 100, px, vol, spy_closes, view.get("edge"), nature, regime,
+                                        patt, dm.spread_bps(getattr(sec, "bid_price", None), getattr(sec, "ask_price", None)))
+                    d.features, d.sector = feats, s.sector
+                    out[t] = d
+                continue
             d = dm.decide(t, s.capital.sleeve, s.gate_pass and fund_score > 0, fund_score, px, vol, spy_closes,
                           view.get("edge"), nature, regime, model_alpha, mw, patt,
                           dm.spread_bps(getattr(sec, "bid_price", None), getattr(sec, "ask_price", None)))
@@ -636,7 +649,14 @@ class MetadronCorridor(QCAlgorithm):
             if d.approved and catalyst and s.capital.sleeve != "DISTRESSED":
                 d.sleeve = "EVENT"                              # event-driven bucket (10%)
             out[t] = d
-        dm.fit_sleeves(list(out.values()), getattr(self, "caps", None), self.sector_budget or None)
+        caps, share = getattr(self, "caps", None) or dm.sleeve_caps(), self.short_share
+        single = sum(caps.get(k, 0.0) for k in dm.EQUITY_SLEEVES)
+        longs = [d for d in out.values() if d.sleeve != "SHORT"]
+        dm.fit_sleeves(longs, {k: v * (1 - share) if k in dm.EQUITY_SLEEVES else v for k, v in caps.items()},
+                       self.sector_budget or None)
+        pool = single * (1 - share) + self.etf_shortfall - sum(d.target for d in longs)
+        self.undeployed = dm.fill_book(longs, pool, single)     # owner: deploy the book, not cash
+        dm.fit_shorts([d for d in out.values() if d.sleeve == "SHORT"], single * share)
         return out
 
     def _etf_sleeve(self, prices, spy_closes):
@@ -645,13 +665,13 @@ class MetadronCorridor(QCAlgorithm):
         live = lambda names: [t for t in names if len(prices.get(t, [])) > 21]   # listed with history
         income, comm = live(CASHFLOW_ETFS["income"]), live(CASHFLOW_ETFS["commodities"])
         comm_share = {"COMMODITIES/GOLD": 0.5, "GOLD/CASH": 1 / 3}.get(sb["hedge"], 0.0)
-        if not income:
-            comm_share = 1.0
         out = {t: 0.0 for t in ALL_ETFS}
         cf = self.caps.get("CASHFLOW", dm.SLEEVES["CASHFLOW"])
-        for names, share in ((income, 1 - comm_share), (comm, comm_share)):
-            for t in names:
-                out[t] = cf * share / len(names)
+        for names, full, share in ((income, CASHFLOW_ETFS["income"], 1 - comm_share),
+                                   (comm, CASHFLOW_ETFS["commodities"], comm_share)):
+            for t in names:                                 # each ETF ≤ its equal share of the bucket: an ETF that
+                out[t] = cf * share / len(full)             # is the only one listed (DIVO before 2020) stays small
+        self.etf_shortfall = max(cf - sum(out.values()), 0.0)   # unfilled bucket → single names, never other ETFs
         fi = live(FI_ETFS["TREASURIES"] if sb["hedge"] == "TREASURIES" else FI_ETFS["OTHER"]) or live(FI_ETFS["TREASURIES"])
         for t in fi:
             out[t] = self.caps.get("FI_MACRO", dm.SLEEVES["FI_MACRO"]) / len(fi)
@@ -662,7 +682,7 @@ class MetadronCorridor(QCAlgorithm):
         """Scale each new/increased equity target into the 2.5% stock-specific VaR budget (largest first)."""
         book, out = [], {}
         for t, w in sorted(targets.items(), key=lambda x: -abs(x[1])):
-            if w <= 0:
+            if w == 0:
                 out[t] = 0.0
                 continue
             d = self.decisions.get(t)
@@ -684,9 +704,11 @@ class MetadronCorridor(QCAlgorithm):
                 continue
             sec = self.securities[sym]
             price = sec.price
-            if price <= 0 or ((self.breaker_on or not self.feed_ok) and target > self._weight(sym)):
-                continue                                   # no new risk under the breaker or a feed halt
-            delta_w = target - self._weight(sym)
+            w0 = self._weight(sym)
+            adding = abs(target) > abs(w0) or target * w0 < 0   # more exposure, long or short
+            if price <= 0 or ((self.breaker_on or not self.feed_ok or t in self.feed.state.stale) and adding):
+                continue                                   # no new risk under the breaker, a feed halt, or in a
+            delta_w = target - w0                          # name whose own bars are stale
             if abs(delta_w) < MIN_TRADE:
                 continue
             qty = int(delta_w * fraction * nav / price)
@@ -746,7 +768,7 @@ class MetadronCorridor(QCAlgorithm):
             self.debug(f"BREAKER daily loss {nav / self.day_open_nav - 1:.2%}: no new entries, overlay halved")
         for kv in self.portfolio:
             sym, h = kv.key, kv.value
-            if not h.invested or h.type != SecurityType.EQUITY or h.quantity <= 0:
+            if not h.invested or h.type != SecurityType.EQUITY or h.quantity == 0:
                 continue
             a = self.protector.update(sym.value, self.securities[sym].price, h.quantity)
             if a is None:
@@ -857,7 +879,9 @@ class MetadronCorridor(QCAlgorithm):
         self._stat("Regime", f"{self.state['regime']} {self.state['zone']} Rm {self.state['rm']:.1%}")
         self._stat("Decisions", f"{len(app)} approved of {len(ds)} (shortlist {len(self.selected)})")
         self._stat("Rejected for", ", ".join(f"{k} x{n}" for k, n in sorted(why.items(), key=lambda x: -x[1])[:3]) or "-")
-        self._stat("Targets", f"{len(live)} names, {sum(live.values()):.0%} of NAV")
+        short = {t: w for t, w in self.targets.items() if w < 0}
+        self._stat("Targets", f"long {sum(live.values()):.0%} ({len(live)}) short {-sum(short.values()):.0%} "
+                              f"({len(short)}) undeployed {getattr(self, 'undeployed', 0.0):.0%}")
         pnl, by_name = {}, {}
         for kv in self.portfolio:                          # where the P&L comes from (realised + open)
             h = kv.value

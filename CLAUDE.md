@@ -267,6 +267,28 @@ GOLD/CASH) and FI / macro 5% (TLT/IEF when bonds hedge, else SHY). **MES overlay
 beta-hedged to zero, and above it total market beta ≈ sleeves' ≈ 0.7 + ≤ 2.0 futures), scaled so book CVaR95 ≤ 1.5 × regime VaR ceiling, halved by the breaker, then portfolio hard stops
 (−4% halve, −8% flat; re-armed after 5 days flat).
 
+### Long / short book, full deployment, 2x Kelly (owner, Nov 2026; code: `algorithm/shorts.py`, `decision.py`)
+
+- **2x Kelly** on single-name positions (`position_kelly` = 2.0; was full Kelly). The corridor keeps its own k
+  (`kelly_fraction` = 1.0). Per-name cap 20% NAV, sleeves and the 2.5% stock-specific VaR budget still apply.
+- **Long / short in a bearish turn.** A share of the single-name budget (70% NAV) is held SHORT: TRENDING 0 ·
+  RANGE 0 · STRESS 30% · CRASH 50%, and at least 15% as soon as the turn begins (corridor zone DEFENSIVE, or
+  P(STRESS) + P(CRASH) ≥ 35%). Long sleeve caps shrink by the same share. Short candidates = the 20 weakest liquid
+  scored names (fail the fundamentals gate or composite < 45; cap ≥ $2B, $20M/day, price ≥ $10), subscribed with
+  the shortlist. Entry = inverted gates, composite ≥ 0.55, a downtrend is required, spread ≤ 30 bps, P(profit) ≥ 52%;
+  ≤ 5% NAV per name. Puts (`BEAR_PUT`, ~40Δ, 45–120 DTE) on the 5 strongest short ideas through the options desk.
+  Protection mirrors the longs: +6% from the low → cover half, +10% → cover all, resting buy-stop at low +10%,
+  14-day cooldown (two-sided: a stopped name is not re-entered on either side).
+- **Full deployment.** Single-name budget the entry gate leaves unfilled is deployed into the best remaining
+  names that pass the fundamentals gate (composite ≥ 0.50, no macro veto, tradable spread), best first, ≤ 4% NAV
+  each and ≤ 30% of the single-name budget per GICS sector. What still cannot be placed is reported ("undeployed").
+- **ETFs never exceed their buckets.** Each cash-flow ETF is capped at its equal share of the bucket (15% / 4 income
+  ETFs = 3.75% NAV; DIVO alone before 2020 stays at 3.75%); an unfilled bucket goes to single names, never to
+  other ETFs.
+- A held name with bars older than 15 minutes blocks entries in that name only; SPY / reference staleness halts
+  the book. Thresholds above (short shares, 5% short cap, fill floor 0.50 / 4%, per-ETF cap) are first settings
+  pending the owner's review against backtests.
+
 ### Feed guard + live data (code: `algorithm/feed_guard.py`; owner threat model: a delayed, cut or altered feed)
 
 Phase 1: IBKR **paper** account for execution (separate IBKR username for QuantConnect); live prices from Tradier
@@ -275,7 +297,7 @@ feed) as the reference.
 
 | Defence | Rule |
 |---------|------|
-| Staleness | SPY and MES last bar ≤ 5 min, held names ≤ 15 min (daily backtests: multi-day gaps only) |
+| Staleness | SPY and the reference last bar ≤ 5 min → halt; a held name > 15 min → no entries in that name only (daily backtests: multi-day gaps only) |
 | Data subscriptions | `data_resolution=mixed` (default): every universe stock (S&P 1500 + watch list) subscribed DAILY; traded names (shortlist, held, option underlyings), SPY, ETFs and options at MINUTE; minute extras unused 10 days are released. `minute` = all ~1,500 at minute (owner: once profitable); `daily` = fast research backtests |
 | Cross-feed | reference/SPY ratio within 0.5% of its rolling median (phase 1 SPX index, phase 2 MES); a one-sided > 3% jump between checks |
 | Halt | any failure → no new entries, no leverage increases, no options entries, no market-on-close; reductions only, collared; clears after 2 clean checks |

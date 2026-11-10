@@ -109,12 +109,19 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
     # ------------------------------------------------------------------ protection cooldown
     def _protect_note(self, ticker, keep_qty, why):
         """A trim / stop holds for the cooldown: at most keep_qty shares until it expires."""
-        self.protect[ticker] = {"qty": max(int(keep_qty), 0), "why": why,
+        self.protect[ticker] = {"qty": int(keep_qty), "why": why,        # signed: negative = short shares kept
                                 "until": self.time.date() + timedelta(days=pr.PROTECT_COOLDOWN_DAYS)}
-        sym = self._symbol(ticker)
-        if sym is not None and self.securities.contains_key(sym):
-            cap = keep_qty * self.securities[sym].price / self._nav()
-            self.targets[ticker] = min(self.targets.get(ticker, cap), cap)
+        self.targets[ticker] = self._protect_cap(ticker, self.targets.get(ticker))
+
+    def _protect_cap(self, ticker, target):
+        """Target allowed by a cooldown: at most the shares kept, same side; 0 after a close (either side)."""
+        p, sym = self.protect[ticker], self._symbol(ticker)
+        px = self.securities[sym].price if sym is not None and self.securities.contains_key(sym) else 0.0
+        cap = p["qty"] * px / self._nav()
+        if p["qty"] == 0:
+            return 0.0
+        target = cap if target is None else target
+        return max(0.0, min(target, cap)) if cap > 0 else min(0.0, max(target, cap))
 
     def on_order_event(self, order_event):
         """A filled resting stop starts the same cooldown as a −10% close (no buy-back the next morning)."""
@@ -135,9 +142,7 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
             if today > p["until"]:
                 self.protect.pop(t, None)
                 continue
-            sym = self._symbol(t)
-            px = self.securities[sym].price if sym is not None and self.securities.contains_key(sym) else 0.0
-            targets[t] = min(targets.get(t, 0.0), p["qty"] * px / nav)
+            targets[t] = self._protect_cap(t, targets.get(t, 0.0))
         return targets
 
     def _reprice_protect(self):
@@ -147,11 +152,13 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
         for t, p in list(self.protect.items()):
             sym = self._symbol(t)
             h = self._holding(sym)
-            if h is None or h.quantity <= p["qty"]:
+            if h is None or h.quantity == 0:
+                continue
+            qty = int(h.quantity) - p["qty"]               # excess: > 0 sell (long), < 0 buy back (short)
+            if qty == 0 or (qty > 0) != (h.quantity > 0):
                 continue
             price = self.securities[sym].price
-            qty = int(h.quantity) - p["qty"]
-            if price <= 0 or (p["qty"] > 0 and qty * price / nav < MIN_PROTECT_TRADE):
+            if price <= 0 or (p["qty"] != 0 and abs(qty) * price / nav < MIN_PROTECT_TRADE):
                 continue
             self._limit(sym, -qty, "EQUITY", f"PROTECT {t}: {p['why']}")
 
@@ -274,10 +281,10 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
             sym, h = kv.key, kv.value
             if not h.invested:
                 continue
-            if h.type == SecurityType.EQUITY and h.quantity > 0:
+            if h.type == SecurityType.EQUITY and h.quantity != 0:
                 st = self.protector.states.get(sym.value)
-                peak = st.peak if st is not None else self.securities[sym].price
-                want[sym] = (-int(h.quantity), fg.position_stop(peak))
+                ref = st.peak if st is not None else self.securities[sym].price     # peak (long) / low (short)
+                want[sym] = (-int(h.quantity), fg.position_stop(ref) if h.quantity > 0 else fg.short_stop(ref))
             elif h.type == SecurityType.FUTURE and h.quantity != 0:
                 stop = fg.futures_stop(self.securities[sym].price, self.current_leverage)
                 if stop is not None:

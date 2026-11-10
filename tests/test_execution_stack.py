@@ -72,7 +72,8 @@ def test_decision_full_kelly_and_vetoes():
     good = gbm(300, 0.45, 0.25, seed=3)
     d = dm.decide("GOOD", "IG", True, 0.80, good, [1e6] * 301, spy, 0.5, "SECULAR", "TRENDING")
     assert d.approved and d.mu_alpha > 0 and d.p_profit >= dm.P_PROFIT_MIN
-    assert d.kelly == pytest.approx(d.mu_alpha / d.idio_vol ** 2)
+    assert dm.KELLY_FRACTION == 2.0                                    # owner: 2x Kelly on single names
+    assert d.kelly == pytest.approx(2.0 * d.mu_alpha / d.idio_vol ** 2)
     assert d.target == pytest.approx(min(d.kelly, dm.MAX_POSITION))
     bad = dm.decide("BAD", "IG", False, 0.80, good, [1e6] * 301, spy, 0.5, "SECULAR", "TRENDING")
     assert not bad.approved and bad.target == 0 and "fundamentals gate failed" in bad.reasons
@@ -199,3 +200,60 @@ def test_heartbeat_windows_are_liquid():
         assert 45 <= m <= 360                                                   # never in the first 45 or last 30 minutes
     assert sc.risk_minutes()[0] == 30 and sc.risk_minutes()[-1] == 360
     assert len(sec.SECTORS) == 11
+
+
+# ---------------------------------------------------------------- long / short, full deployment (owner, Nov 2026)
+def test_short_share_follows_the_regime_and_starts_at_the_turn():
+    import shorts as sh
+    assert sh.short_share("TRENDING", "ROTATION", {"TRENDING": 0.9}) == 0.0
+    assert sh.short_share("RANGE", "DEFENSIVE", {}) == 0.15                  # expected S&P return < 7%
+    assert sh.short_share("RANGE", "DYNAMIC", {"STRESS": 0.3, "CRASH": 0.1}) == 0.15   # the turn has begun
+    assert sh.short_share("STRESS", "DEFENSIVE", {}) == 0.30
+    assert sh.short_share("CRASH", "DEFENSIVE", {}) == 0.50
+
+
+def test_short_decision_needs_weakness_and_a_downtrend():
+    spy = gbm(300, 0.10, 0.15, seed=2)
+    weak = gbm(300, -0.60, 0.25, seed=5)
+    d = dm.decide_short("WEAK", 0.20, weak, [1e6] * 301, spy, -0.5, "CYCLICAL", "CRASH")
+    assert d.approved and d.sleeve == "SHORT" and -dm.SHORT_MAX_NAME <= d.target < 0
+    strong = gbm(300, 0.60, 0.25, seed=3)
+    up = dm.decide_short("UP", 0.20, strong, [1e6] * 301, spy, -0.5, "CYCLICAL", "CRASH")
+    assert not up.approved and any("no downtrend" in r for r in up.reasons)   # never short a rising stock
+    a, b = dm.Decision("A", "SHORT", {}, 0.7, target=-0.05), dm.Decision("B", "SHORT", {}, 0.6, target=-0.05)
+    dm.fit_shorts([a, b], 0.06)
+    assert a.target == pytest.approx(-0.03) and b.target == pytest.approx(-0.03)
+    dm.fit_shorts([a, b], 0.0)
+    assert a.target == 0.0 and b.target == 0.0                               # bullish regime: no shorts
+
+
+def test_fill_deploys_unfilled_budget_into_the_best_remaining_names():
+    def cand(t, comp, sector, target=0.0, fund=0.6, macro=0.5, reasons=None, approved=False):
+        d = dm.Decision(t, "IG", {"FUNDAMENTALS": fund, "MACRO": macro}, comp, target=target, approved=approved)
+        d.sector, d.reasons = sector, list(reasons or ["P(profit) 51% / alpha +1.0%"])
+        return d
+    ds = [cand("A", 0.60, "Energy", 0.03, approved=True, reasons=["ok"]), cand("B", 0.54, "Health Care"),
+          cand("C", 0.52, "Energy"), cand("LOW", 0.45, "Utilities"), cand("NOFUND", 0.58, "Utilities", fund=0.0),
+          cand("VETO", 0.58, "Utilities", macro=0.1), cand("WIDE", 0.58, "Utilities", reasons=["spread 80 bps > 30"])]
+    left = dm.fill_book(ds, 0.10, 0.70)
+    by = {d.ticker: d for d in ds}
+    assert by["A"].target == pytest.approx(dm.FILL_MAX_NAME)                 # topped up to the per-name fill cap
+    assert by["B"].approved and by["B"].filled and by["B"].target == pytest.approx(0.04)
+    assert by["C"].approved and by["C"].target == pytest.approx(0.04)
+    assert all(by[t].target == 0 and not by[t].approved for t in ("LOW", "NOFUND", "VETO", "WIDE"))
+    assert left == pytest.approx(0.10 - 0.01 - 0.04 - 0.04)                  # no more candidates → stays cash
+
+
+def test_short_position_protection_mirrors_the_long_side():
+    p = pr.Protector()
+    assert p.update("S", 100.0, -50) is None
+    assert p.update("S", 90.0, -50) is None                                  # new low 90
+    a = p.update("S", 95.5, -50)
+    assert a.kind == "TRIM" and a.fraction == 0.5                            # +6% from the low → cover half
+    assert p.update("S", 99.5, -25).kind == "CLOSE"                          # +10% from the low → cover all
+    assert fg_short_stop(90.0) == 99.0
+
+
+def fg_short_stop(low):
+    import feed_guard as fg
+    return fg.short_stop(low)

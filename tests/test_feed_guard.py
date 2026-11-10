@@ -119,7 +119,7 @@ def _fake_algo(qty=100, price=50.0, nav=100_000.0):
     a._nav = lambda: nav
     a._holding = lambda s: hold if s is sym else None
     a._limit = lambda s, q, kind, tag: a.orders.append((s.value, q, tag))
-    for name in ("_protect_note", "_apply_protect", "_reprice_protect", "_ten_year"):
+    for name in ("_protect_note", "_protect_cap", "_apply_protect", "_reprice_protect", "_ten_year"):
         setattr(a, name, getattr(G, name).__get__(a))
     return a, hold, sec
 
@@ -171,3 +171,23 @@ def test_last_bar_age_uses_the_exchange_clock_not_the_algorithm_clock():
     last = G._last_bar.__get__(a)("SPX")
     assert abs((a._minutes(ny) - last) - 1.0) < 1e-6          # 1 minute old, not 61
 
+
+
+def test_stale_held_name_blocks_that_name_not_the_book():
+    g = fg.FeedGuard()
+    now = 10_000.0
+    st = g.check(now, {"SPY": now - 1, "SPX": now - 1, "DIVO": now - 177}, 400.0, 4000.0, "SPX")
+    assert st.ok and st.stale == ["DIVO"]                          # thin ETF skipped minutes: no halt
+    st = g.check(now + 60, {"SPY": now + 20, "SPX": now + 59}, 400.0, 4000.0, "SPX")
+    assert not st.ok                                               # SPY itself stale → halt
+
+
+def test_cooldown_cap_is_two_sided():
+    a, hold, sec = _fake_algo()
+    G = _guard_mixin()
+    a._protect_cap = G._protect_cap.__get__(a)
+    a._protect_note("ABC", -40, "TRIM short")                      # short trimmed: keep 40 shares short (2% NAV)
+    assert abs(a.targets["ABC"] - 0.0) < 1e-9                      # a long target is not allowed in the cooldown
+    assert abs(a._apply_protect({"ABC": -0.05})["ABC"] + 0.02) < 1e-9
+    a._protect_note("ABC", 0, "CLOSE")
+    assert a._apply_protect({"ABC": -0.05})["ABC"] == 0.0 and a._apply_protect({"ABC": 0.05})["ABC"] == 0.0

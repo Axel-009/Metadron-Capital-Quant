@@ -46,6 +46,7 @@ class GuardState:
     ok: bool = True
     reasons: List[str] = field(default_factory=list)
     clean_streak: int = 0
+    stale: List[str] = field(default_factory=list)   # held names with old bars: no entries in THAT name only
 
 
 class FeedGuard:
@@ -61,13 +62,19 @@ class FeedGuard:
               spy: Optional[float], mes: Optional[float], ref_name: str = "MES") -> GuardState:
         """now_minutes / last_bar_minutes: minutes since any fixed epoch (e.g. timestamp() / 60).
         mes = the independent reference price (MES future in phase 2; the S&P 500 index SPX in phase 1)."""
-        reasons = []
+        reasons, stale = [], []
         for name, t in last_bar_minutes.items():
-            lag = DAILY_LAG_MIN if self.daily else (MAX_LAG_MIN if name in ("SPY", ref_name) else NAME_LAG_MIN)
+            core = name in ("SPY", ref_name)
+            lag = DAILY_LAG_MIN if self.daily else (MAX_LAG_MIN if core else NAME_LAG_MIN)
+            old = t is None or now_minutes - t > lag
+            if old and not core:
+                stale.append(name)                         # a thin name that skipped minutes is not a feed attack:
+                continue                                   # it blocks entries in that name, never the whole book
             if t is None:
                 reasons.append(f"{name}: no data")
-            elif now_minutes - t > lag:
+            elif old:
                 reasons.append(f"{name}: stale {now_minutes - t:.0f} min")
+        self.state.stale = stale
         if spy and mes and spy > 0 and mes > 0:
             r = mes / spy
             fresh = not reasons                            # staleness checks passed this time
@@ -107,6 +114,11 @@ def collar(price: float, buy: bool, kind: str = "EQUITY") -> float:
 
 def position_stop(peak: float) -> float:
     return round(peak * (1 - POSITION_STOP), 2)
+
+
+def short_stop(low: float) -> float:
+    """Resting buy-stop for a short position: the low since entry +10%."""
+    return round(low * (1 + POSITION_STOP), 2)
 
 
 def futures_stop(price: float, overlay: float) -> Optional[float]:

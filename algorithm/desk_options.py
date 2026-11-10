@@ -9,6 +9,7 @@ import schedule as hb
 import options as op
 import decision as dm
 import protection as pr
+import shorts as sh
 from rotation import realised_vol as name_vol
 from sectors import SECTOR_ETF_FALLBACK
 
@@ -26,8 +27,11 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
         """Options on SINGLE NAMES: rotation calls into the favoured GICS sectors, escalation calls on the best
         Energy names, LEAPS / straddles on crashed names, alpha calls on the strongest names."""
         plans = []
-        approved = sorted((d for d in self.decisions.values() if d.approved and d.ticker not in self.protect),
-                          key=lambda d: -d.composite)             # no calls on names in a protection cooldown
+        approved = sorted((d for d in self.decisions.values() if d.approved and d.ticker not in self.protect
+                           and d.sleeve != "SHORT" and not getattr(d, "filled", False)),
+                          key=lambda d: -d.composite)             # calls: entry-gate longs, not in a cooldown
+        bears = sorted((d for d in self.decisions.values() if d.approved and d.sleeve == "SHORT"
+                        and d.target < 0 and d.ticker not in self.protect), key=lambda d: -d.composite)
         by_sector = {}
         for d in approved:
             by_sector.setdefault(d.sector, []).append(d)
@@ -54,6 +58,10 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
             plans.append(dict(kind="ALPHA_CALL", ticker=d.ticker, call=True, delta=0.6, dte=(30, 90),
                               budget=None, mu=d.mu_alpha + 0.04, iv_max=1.0,
                               reason=f"top composite {d.composite:.2f} ({d.sector})"))
+        for d in bears[:sh.BEAR_PUTS]:                    # bearish turn: puts on the strongest short ideas
+            plans.append(dict(kind="BEAR_PUT", ticker=d.ticker, call=False, delta=0.4, dte=(45, 120),
+                              budget=None, mu=-(d.mu_alpha + 0.04), iv_max=1.25,
+                              reason=f"short composite {d.composite:.2f} ({d.sector})"))
         for p in plans:
             p["sleeve"] = self._sleeve_of(p["ticker"])
         return plans

@@ -8,7 +8,7 @@
     expected alpha μα       blend of the composite-implied alpha and the model forecasts (alpha.py, IC-weighted)
     pre-trade checks        spread ≤ 30 bps (equity / ETF; no quote → skip check in backtests that lack quotes),
                             P(profit over HORIZON) ≥ 52% with μα > 0 (normal, idiosyncratic vol)
-    sizing                  full Kelly on idiosyncratic risk: w = k · μα / σε² (k = 1), capped at 20% NAV per name;
+    sizing                  2x Kelly on idiosyncratic risk: w = k · μα / σε² (k = 2, owner), capped at 20% NAV per name;
                             then each (sleeve × GICS sector) bucket: sleeve budget × sector budget (sectors.py),
                             unused sector room spilled to the other sectors' names still below Kelly; then
                             risk_budget.check_alpha_trade scales into the 2.5% stock-specific VaR budget and the
@@ -33,8 +33,13 @@ HORIZON_DAYS = 21
 P_PROFIT_MIN = 0.52
 SPREAD_MAX_BPS = 30.0
 MAX_POSITION = 0.20
-KELLY_FRACTION = 1.0            # owner: full Kelly
+KELLY_FRACTION = 2.0            # owner (Nov 2026): 2x Kelly on single-name positions (was full Kelly)
 MIN_IDIO_VOL = 0.10
+# Full deployment (owner): single-name budget left unfilled by the entry gate is deployed into the best
+# remaining gate-passing names (composite ≥ FILL_MIN, no macro veto, spread ok), ≤ FILL_MAX_NAME each
+FILL_MIN = 0.50
+FILL_MAX_NAME = 0.04
+SHORT_MAX_NAME = 0.05
 
 # Allocation buckets (fractions of NAV, owner-approved; mirrored in engine/allocation AllocationRules)
 SLEEVES = {"IG": 0.40, "HY": 0.10, "DISTRESSED": 0.10, "EVENT": 0.10,          # single names 70%
@@ -125,6 +130,7 @@ class Decision:
     approved: bool = False
     reasons: List[str] = field(default_factory=list)
     sector: str = ""
+    filled: bool = False
 
 
 def decide(ticker: str, sleeve: str, fund_pass: bool, fund_score: float, px: List[float], vol: List[float],
@@ -156,8 +162,72 @@ def decide(ticker: str, sleeve: str, fund_pass: bool, fund_score: float, px: Lis
     d.approved = not d.reasons
     d.target = min(d.kelly, MAX_POSITION) if d.approved else 0.0
     if d.approved:
-        d.reasons.append(f"composite {comp:.2f}, α {d.mu_alpha:+.1%}, σε {d.idio_vol:.0%}, Kelly {d.kelly:.1%}")
+        d.reasons.append(f"composite {comp:.2f}, α {d.mu_alpha:+.1%}, σε {d.idio_vol:.0%}, {KELLY_FRACTION:g}x Kelly {d.kelly:.1%}")
     return d
+
+
+def decide_short(ticker: str, quality: float, px: List[float], vol: List[float], spy: List[float],
+                 subsector_edge: Optional[float], nature: str, regime: str, pattern: float = 0.0,
+                 spread_bps: Optional[float] = None) -> Decision:
+    """Short side (shorts.py): the long gates inverted. quality = fundamentals composite 0..1 (low = weak)."""
+    g = {"FUNDAMENTALS": max(0.0, min(1.0, quality)), "FLOW": flow_gate(px, vol, spy),
+         "MACRO": macro_gate(subsector_edge, nature, regime), "MOMENTUM": momentum_gate(px, pattern)}
+    comp = sum(WEIGHTS[k] * (1.0 - v) for k, v in g.items())
+    d = Decision(ticker, "SHORT", g, comp)
+    d.beta, idio = beta_and_idio(px, spy)
+    d.idio_vol = max(idio or 0.3, MIN_IDIO_VOL)
+    d.mu_alpha = ALPHA_SCALE * (comp - 0.5)                 # expected alpha of the SHORT position
+    h = HORIZON_DAYS / 252
+    d.p_profit = _N(d.mu_alpha * h / (d.idio_vol * math.sqrt(h)))
+    if g["MOMENTUM"] > 0.5:
+        d.reasons.append(f"no downtrend (momentum {g['MOMENTUM']:.2f})")
+    if comp < COMPOSITE_MIN:
+        d.reasons.append(f"short composite {comp:.2f} < {COMPOSITE_MIN}")
+    if spread_bps is not None and spread_bps > SPREAD_MAX_BPS:
+        d.reasons.append(f"spread {spread_bps:.0f} bps > {SPREAD_MAX_BPS:.0f}")
+    if d.mu_alpha <= 0 or d.p_profit < P_PROFIT_MIN:
+        d.reasons.append(f"P(profit) {d.p_profit:.0%} / alpha {d.mu_alpha:+.1%}")
+    d.kelly = KELLY_FRACTION * d.mu_alpha / d.idio_vol ** 2 if d.mu_alpha > 0 else 0.0
+    d.approved = not d.reasons
+    d.target = -min(d.kelly, SHORT_MAX_NAME) if d.approved else 0.0
+    if d.approved:
+        d.reasons.append(f"SHORT composite {comp:.2f}, α {d.mu_alpha:+.1%}, σε {d.idio_vol:.0%}")
+    return d
+
+
+def fit_shorts(decisions: List[Decision], budget: float) -> None:
+    """Scale the short targets into the short budget (fraction of NAV)."""
+    tot = sum(-d.target for d in decisions if d.target < 0)
+    for d in decisions:
+        d.target = 0.0 if budget <= 0 else (d.target * budget / tot if tot > budget else d.target)
+
+
+def fill_book(decisions: List[Decision], pool: float, single_name_budget: float) -> float:
+    """Deploy single-name budget the entry gate left unfilled (owner: 100% of NAV deployed, not cash).
+
+    Best composite first among names that pass the fundamentals gate, have no macro veto, composite ≥ FILL_MIN
+    and a tradable spread; ≤ FILL_MAX_NAME per name and ≤ SECTOR_MAX of the single-name budget per GICS sector.
+    Returns the part that could not be placed (stays in cash)."""
+    sec: Dict[str, float] = {}
+    for d in decisions:
+        if d.target > 0:
+            sec[d.sector] = sec.get(d.sector, 0.0) + d.target
+    cands = [d for d in decisions if d.sleeve in EQUITY_SLEEVES and d.gates.get("FUNDAMENTALS", 0) > 0
+             and d.gates.get("MACRO", 0) >= MACRO_VETO and d.composite >= FILL_MIN
+             and not any(r.startswith("spread") for r in d.reasons)]
+    for d in sorted(cands, key=lambda d: -d.composite):
+        if pool <= 1e-4:
+            break
+        add = min(pool, FILL_MAX_NAME - d.target, SECTOR_MAX * single_name_budget - sec.get(d.sector, 0.0))
+        if add < 0.002:
+            continue
+        if not d.approved:
+            d.approved, d.filled = True, True
+            d.reasons = [f"deployment fill: composite {d.composite:.2f} (best available, below the entry gate)"]
+        d.target += add
+        sec[d.sector] = sec.get(d.sector, 0.0) + add
+        pool -= add
+    return max(pool, 0.0)
 
 
 def sleeve_caps() -> Dict[str, float]:
@@ -180,6 +250,8 @@ def fit_sleeves(decisions: List[Decision], caps: Optional[Dict[str, float]] = No
     for d in decisions:
         by.setdefault(d.sleeve, []).append(d)
     for sleeve, ds in by.items():
+        if sleeve == "SHORT":
+            continue                                   # sized by fit_shorts
         cap = caps.get(sleeve, 0.0) if sleeve in EQUITY_SLEEVES else 0.0
         if cap <= 0:
             for d in ds:

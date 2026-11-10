@@ -43,6 +43,7 @@ class PositionState:
     entry: float
     peak: float
     trimmed_at_peak: Optional[float] = None
+    short: bool = False          # short position: `peak` holds the LOW since entry, drawdown = rise from it
 
 
 @dataclass
@@ -58,16 +59,20 @@ class Protector:
     states: Dict[str, PositionState] = field(default_factory=dict)
 
     def update(self, ticker: str, price: float, qty: float) -> Optional[Action]:
-        if qty <= 0 or price <= 0:
+        if qty == 0 or price <= 0:
             self.states.pop(ticker, None)
             return None
+        short = qty < 0
         st = self.states.get(ticker)
-        if st is None:
-            self.states[ticker] = PositionState(price, price)
+        if st is None or st.short != short:
+            self.states[ticker] = PositionState(price, price, short=short)
             return None
-        if price > st.peak:
-            st.peak = price
-        dd = 1 - price / st.peak
+        if short:
+            st.peak = min(st.peak, price)                  # the low since entry
+            dd = price / st.peak - 1                       # adverse move = rise from the low
+        else:
+            st.peak = max(st.peak, price)
+            dd = 1 - price / st.peak
         if dd >= CLOSE_DD:
             self.states.pop(ticker, None)
             return Action("CLOSE", ticker, f"position drawdown {dd:.1%} ≥ {CLOSE_DD:.0%}")

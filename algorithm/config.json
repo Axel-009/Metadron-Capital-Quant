@@ -12,7 +12,8 @@
         "shortlist_size": "60",
         "trade_equities": "true",
         "trade_options": "true",
-        "data_resolution": "mixed"
+        "data_resolution": "mixed",
+        "position_kelly": "2.0"
     },
     "project-name": "mayor of houston B"
 }
