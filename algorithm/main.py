@@ -177,6 +177,7 @@ class MetadronCorridor(QCAlgorithm):
     _apply_protect = GuardMixin._apply_protect
     _reprice_protect = GuardMixin._reprice_protect
     _ten_year = GuardMixin._ten_year
+    _stat = GuardMixin._stat
     _sleeve_of = OptionsDeskMixin._sleeve_of
     _option_plans = OptionsDeskMixin._option_plans
     _option_premium = OptionsDeskMixin._option_premium
@@ -845,6 +846,18 @@ class MetadronCorridor(QCAlgorithm):
 
     def _publish_state(self):
         nav = self._nav()
+        ds = list(self.decisions.values())
+        app = [d for d in ds if d.approved]
+        why = {}
+        for d in ds:
+            if not d.approved and d.reasons:
+                k = d.reasons[0].split(" ")[0] + " " + (d.reasons[0].split(" ") + [""])[1]
+                why[k] = why.get(k, 0) + 1
+        live = {t: w for t, w in self.targets.items() if w > 0}
+        self._stat("Regime", f"{self.state['regime']} {self.state['zone']} Rm {self.state['rm']:.1%}")
+        self._stat("Decisions", f"{len(app)} approved of {len(ds)} (shortlist {len(self.selected)})")
+        self._stat("Rejected for", ", ".join(f"{k} x{n}" for k, n in sorted(why.items(), key=lambda x: -x[1])[:3]) or "-")
+        self._stat("Targets", f"{len(live)} names, {sum(live.values()):.0%} of NAV")
         pos = {}
         for kv in self.portfolio:
             sym, h = kv.key, kv.value

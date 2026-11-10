@@ -22,11 +22,28 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
         return t.timestamp() / 60.0 if t is not None and hasattr(t, "timestamp") else None
 
     def _last_bar(self, sym):
+        """Time of the security's last bar, expressed on the ALGORITHM clock. Bars are stamped in the exchange's
+        time zone (the SPX index is Chicago, stocks New York): the age is measured against the security's own
+        local clock, never by subtracting an exchange time from the algorithm time (an hour's false staleness)."""
         try:
-            d = self.securities[sym].get_last_data()
-            return self._minutes(d.end_time) if d is not None else None
+            sec = self.securities[sym]
+            d = sec.get_last_data()
+            if d is None:
+                return None
+            try:
+                age = (sec.local_time - d.end_time).total_seconds() / 60.0
+                return self._minutes(self.time) - max(age, 0.0)
+            except Exception:
+                return self._minutes(d.end_time)
         except Exception:
             return None
+
+    def _stat(self, key, value):
+        """Live status line on the backtest / live page (QuantConnect runtime statistics)."""
+        try:
+            self.set_runtime_statistic(key, str(value)[:60])
+        except Exception:
+            pass
 
     def _is_raw(self, sym) -> bool:
         try:
@@ -205,6 +222,7 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
         elif not was and st.ok:
             self.debug("FEED OK: halt cleared")
         self.plot("Feed", "ok", 1.0 if st.ok else 0.0)
+        self._stat("Feed", "OK" if st.ok else "HALT: " + "; ".join(st.reasons[:2]))
         return st.ok
 
     def _has_minute(self, sym) -> bool:

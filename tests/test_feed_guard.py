@@ -157,3 +157,16 @@ def test_ten_year_default_and_macro_value():
     assert a._ten_year({}) == 0.042
     assert a._ten_year({"treasury_10y": 0.029}) == 0.029
     assert a._ten_year({"treasury_10y": 5.0}) == 0.042            # nonsense reading → default
+
+
+def test_last_bar_age_uses_the_exchange_clock_not_the_algorithm_clock():
+    """SPX bars are stamped in Chicago time; the algorithm runs on New York time. A fresh bar must read as fresh."""
+    import datetime as dt, types
+    G = _guard_mixin()
+    ny = dt.datetime(2018, 3, 5, 10, 0)                       # algorithm clock (New York)
+    chicago_now, bar_end = dt.datetime(2018, 3, 5, 9, 0), dt.datetime(2018, 3, 5, 8, 59)
+    sec = types.SimpleNamespace(local_time=chicago_now, get_last_data=lambda: types.SimpleNamespace(end_time=bar_end))
+    a = types.SimpleNamespace(time=ny, securities={"SPX": sec})
+    a._minutes = G._minutes.__get__(a)
+    last = G._last_bar.__get__(a)("SPX")
+    assert abs((a._minutes(ny) - last) - 1.0) < 1e-6          # 1 minute old, not 61
