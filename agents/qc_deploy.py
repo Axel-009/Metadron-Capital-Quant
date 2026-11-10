@@ -33,11 +33,14 @@ def files_to_push():
 
 def still_running(b: dict) -> bool:
     """A backtest that is queued or running (never a completed or failed one — those keep their results)."""
+    if b.get("completed") or b.get("error") or b.get("stacktrace"):
+        return False
     status = str(b.get("status") or "").strip().lower()
-    if status:
-        return status.startswith(("in queue", "running", "initializing", "launching"))
-    return (not b.get("completed") and not b.get("error") and not b.get("stacktrace")
-            and float(b.get("progress") or 0.0) < 1.0)
+    if status.startswith(("completed", "runtime error")):
+        return False
+    if status.startswith(("in queue", "in progress", "running", "initializing", "launching")):
+        return True
+    return float(b.get("progress") or 0.0) < 1.0
 
 
 def free_node(project_id: int) -> int:

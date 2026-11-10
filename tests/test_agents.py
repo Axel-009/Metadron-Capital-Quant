@@ -103,10 +103,10 @@ def test_deploy_frees_only_running_backtests(monkeypatch):
         calls.append((endpoint, payload))
         if endpoint == "backtests/list":
             return {"success": True, "backtests": [
-                {"backtestId": "run", "status": "Running: 40%", "name": "old"},
+                {"backtestId": "run", "status": "In Progress...", "progress": 0.273, "completed": False, "name": "old"},
                 {"backtestId": "queued", "status": "In Queue...", "name": "q"},
-                {"backtestId": "done", "status": "Completed.", "name": "good"},
-                {"backtestId": "err", "status": "Runtime Error", "name": "bad"},
+                {"backtestId": "done", "status": "Completed.", "progress": 1, "completed": True, "name": "good"},
+                {"backtestId": "err", "status": "Runtime Error", "progress": 1, "completed": True, "error": "x"},
                 {"backtestId": "nostatus-done", "completed": True, "progress": 1.0},
                 {"backtestId": "nostatus-run", "completed": False, "progress": 0.3}]}
         return {"success": True}
