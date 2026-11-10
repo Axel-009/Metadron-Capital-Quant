@@ -31,6 +31,31 @@ def files_to_push():
     return out
 
 
+def still_running(b: dict) -> bool:
+    """A backtest that is queued or running (never a completed or failed one — those keep their results)."""
+    status = str(b.get("status") or "").strip().lower()
+    if status:
+        return status.startswith(("in queue", "running", "initializing", "launching"))
+    return (not b.get("completed") and not b.get("error") and not b.get("stacktrace")
+            and float(b.get("progress") or 0.0) < 1.0)
+
+
+def free_node(project_id: int) -> int:
+    """Owner decision (Nov 2026): a backtest of an older version still running in this project is deleted so the
+    new one can start (one backtest node). Completed and failed backtests are never touched."""
+    res = qc_api.post("backtests/list", {"projectId": project_id}) or {}
+    n = 0
+    for b in res.get("backtests") or []:
+        bid = b.get("backtestId")
+        if bid and still_running(b):
+            ok = qc_api.post("backtests/delete", {"projectId": project_id, "backtestId": bid})
+            print(f"deleted still-running backtest {b.get('name')!r} ({bid}):", "ok" if ok and ok.get("success") else "FAILED")
+            n += 1
+    if n:
+        time.sleep(15)
+    return n
+
+
 def deploy(project_id: int, backtest: bool = False, name: str = "") -> bool:
     for fname, content in files_to_push().items():
         ok = qc_api.post("files/update", {"projectId": project_id, "name": fname, "content": content})
@@ -60,8 +85,15 @@ def deploy(project_id: int, backtest: bool = False, name: str = "") -> bool:
     if state != "BuildSuccess":
         return False
     if backtest:
-        bt = qc_api.post("backtests/create", {"projectId": project_id, "compileId": cid,
-                                              "backtestName": name or f"ci {time.strftime('%Y-%m-%d %H:%M')}"})
+        free_node(project_id)
+        payload = {"projectId": project_id, "compileId": cid,
+                   "backtestName": name or f"ci {time.strftime('%Y-%m-%d %H:%M')}"}
+        bt = qc_api.post("backtests/create", payload)
+        for _ in range(3):                                 # the node is released a few seconds after a delete
+            if (bt or {}).get("backtest", {}).get("backtestId"):
+                break
+            time.sleep(20)
+            bt = qc_api.post("backtests/create", payload)
         bid = (bt or {}).get("backtest", {}).get("backtestId")
         print("backtest:", bid)
         if not bid:

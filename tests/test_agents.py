@@ -93,3 +93,26 @@ def test_llm_and_qc_helpers_degrade_without_credentials(monkeypatch):
     assert qc_api.post("files/read", {}) is None and qc_api.object_set("k", "v") is False and qc_api.object_get(["k"]) == {}
     files = qc_deploy.files_to_push()
     assert "main.py" in files and "corridor.py" in files and all(n.endswith(".py") for n in files)
+
+
+def test_deploy_frees_only_running_backtests(monkeypatch):
+    import qc_deploy
+    calls = []
+
+    def post(endpoint, payload):
+        calls.append((endpoint, payload))
+        if endpoint == "backtests/list":
+            return {"success": True, "backtests": [
+                {"backtestId": "run", "status": "Running: 40%", "name": "old"},
+                {"backtestId": "queued", "status": "In Queue...", "name": "q"},
+                {"backtestId": "done", "status": "Completed.", "name": "good"},
+                {"backtestId": "err", "status": "Runtime Error", "name": "bad"},
+                {"backtestId": "nostatus-done", "completed": True, "progress": 1.0},
+                {"backtestId": "nostatus-run", "completed": False, "progress": 0.3}]}
+        return {"success": True}
+
+    monkeypatch.setattr(qc_deploy.qc_api, "post", post)
+    monkeypatch.setattr(qc_deploy.time, "sleep", lambda s: None)
+    assert qc_deploy.free_node(1) == 3
+    deleted = [p["backtestId"] for e, p in calls if e == "backtests/delete"]
+    assert deleted == ["run", "queued", "nostatus-run"]          # completed / failed runs keep their results

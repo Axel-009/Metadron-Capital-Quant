@@ -4,7 +4,7 @@ name: deploy-to-quantconnect
 on:
   push:
     branches: [main]
-    paths: ["algorithm/**"]
+    paths: ["algorithm/**", "agents/qc_deploy.py"]
   workflow_dispatch:
 jobs:
   test:
