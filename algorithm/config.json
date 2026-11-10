@@ -13,5 +13,6 @@
         "trade_equities": "true",
         "trade_options": "true",
         "data_resolution": "mixed"
-    }
+    },
+    "project-name": "mayor of houston B"
 }

@@ -41,9 +41,14 @@ def deploy(project_id: int, backtest: bool = False, name: str = "") -> bool:
             return False
         print(f"pushed {fname}")
     with open(os.path.join(ROOT, "algorithm", "config.json"), encoding="utf-8") as fh:
-        params = json.load(fh).get("parameters", {})
-    qc_api.post("projects/update", {"projectId": project_id,
-                                    "parameters": [{"key": k, "value": v} for k, v in params.items()]})
+        cfg = json.load(fh)
+    params = cfg.get("parameters", {})
+    update = {"projectId": project_id, "parameters": [{"key": k, "value": v} for k, v in params.items()]}
+    if cfg.get("project-name"):                            # owner-chosen QuantConnect project name
+        update["name"] = cfg["project-name"]
+    res = qc_api.post("projects/update", update)
+    if cfg.get("project-name"):
+        print("project name:", cfg["project-name"], "ok" if res and res.get("success") else "NOT applied")
     comp = qc_api.post("compile/create", {"projectId": project_id}) or {}
     cid = comp.get("compileId")
     state = comp.get("state")
