@@ -44,11 +44,40 @@ def logs(pid: int, bid: str) -> list:
         res = qc_api.post("backtests/read/log", {"projectId": pid, "backtestId": bid, "start": start,
                                                  "end": start + 200, "query": " "}) or {}
         page = res.get("logs") or res.get("backtestLogs") or []
+        if start == 0 and not page:
+            print("  (log endpoint keys:", sorted(res.keys()), "errors:", res.get("errors"), ")")
         out += [str(x) for x in page]
         if len(page) < 200:
             break
         start += 200
     return out
+
+
+def chart_tail(pid: int, bid: str, name: str, n: int = 4) -> None:
+    """Last few points of every series of a chart (first, last, min, max, count)."""
+    import time
+    res = {}
+    for _ in range(4):
+        res = qc_api.post("backtests/chart/read", {"projectId": pid, "backtestId": bid, "name": name, "count": 500,
+                                                   "start": 0, "end": int(time.time())}) or {}
+        if res.get("chart"):
+            break
+        time.sleep(4)
+    series = (res.get("chart") or {}).get("series") or {}
+    if not series:
+        print(f"CHART {name}: no data (keys {sorted(res.keys())}, errors {res.get('errors')})")
+        return
+    print(f"CHART {name}:")
+    for sname, sr in series.items():
+        vals = []
+        for pt in sr.get("values") or []:
+            try:
+                vals.append(float(pt[1] if isinstance(pt, (list, tuple)) else pt.get("y")))
+            except (TypeError, ValueError, IndexError):
+                pass
+        if vals:
+            print(f"  {sname}: n={len(vals)} first={vals[0]:.4g} last={vals[-1]:.4g} min={min(vals):.4g} "
+                  f"max={max(vals):.4g} tail={[round(v, 4) for v in vals[-n:]]}")
 
 
 def report(pid: int, bid: str = "") -> int:
@@ -80,11 +109,15 @@ def report(pid: int, bid: str = "") -> int:
         for o in od[:8] + od[-8:]:
             print(f"  {str(o.get('createdTime') or o.get('time'))[:19]} {_sym(o):<8} qty={o.get('quantity')} "
                   f"px={o.get('price')} status={o.get('status')} | {str(o.get('tag'))[:110]}")
+    for chart in ("Decisions", "Feed", "Data health", "Leverage", "Regime", "Rm vs corridor", "Risk"):
+        chart_tail(pid, bid, chart)
     lg = logs(pid, bid)
     print(f"LOG lines read: {len(lg)}")
     halts = [x for x in lg if "FEED HALT" in x]
     print(f"  FEED HALT lines: {len(halts)}")
     key = [x for x in lg if any(k in x for k in KEY_LOG)]
+    for x in lg[:30]:
+        print("  | " + x[:260])
     for x in key[:25] + (["  ..."] if len(key) > 50 else []) + key[-25:]:
         print("  " + x[:260])
     return 1 if err else 0
