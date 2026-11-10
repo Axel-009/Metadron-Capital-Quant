@@ -140,16 +140,25 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
                                        s.bid_price, s.ask_price, getattr(s, "open_interest", None) or None))
             pick = op.select(quotes, S, p["call"], p["delta"], *p["dte"])
             if pick is None:
+                self._opt_reject("no tradable contract (spread / open interest / quote)")
                 continue
             q = pick.quote
             T = q.dte / 365
             rv = p.get("rv") or name_vol(self._closes(und, 64), 63) or pick.iv   # TOTAL realised vol (implied vol is
                                                                                # total too; never compare with idio)
             if p.get("iv_max") is not None and pick.iv > p["iv_max"] * rv:
+                self._opt_reject(f"implied vol rich (> {p['iv_max']:g} x realised)")
                 continue                                   # alpha / rotation calls only when implied vol is not rich
-            prob, pnl = op.real_world(S, q.strike, T, max(rv, 0.05), q.mid, p["mu"], p["call"])
-            if p.get("straddle") or p["kind"] == "HEDGE":
+            # Black-Scholes values the contract at realised vol; Monte Carlo (4,000 real-world paths) gives the
+            # probability of profit and the expected P&L the gate and the Kelly size use
+            bs = op.bs_price(S, q.strike, T, max(rv, 0.05), call=p["call"])
+            mc = op.monte_carlo(S, q.strike, T, max(rv, 0.05), q.mid, p["mu"], p["call"])
+            prob, pnl = mc["p_profit"], mc["exp_pnl"]
+            exempt = bool(p.get("straddle")) or p["kind"] == "HEDGE"
+            if exempt:
                 prob, pnl = max(prob, op.P_PROFIT_LONG), max(pnl, 1e-6)   # hedges / vol trades exempt from P(profit)
+            elif pnl <= 0 or prob < op.P_PROFIT_LONG:
+                self._opt_reject(f"Monte Carlo gate (P(profit) < {op.P_PROFIT_LONG:.0%} or expected P&L ≤ 0)")
             budget = p["budget"] if p["budget"] is not None else op.kelly_option_fraction(prob, pnl, q.mid)
             n = op.contracts(budget, nav, q.mid, prob, pnl)
             room = dm.OPTIONS_TOTAL - self._option_premium()       # premium ≤ 10% of NAV (hedges included)
@@ -158,7 +167,26 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
                 room = min(room, dm.OPTION_PREMIUM.get(sleeve, dm.OPTION_PREMIUM["IG"]) - self._option_premium(sleeve))
             n = min(n, int(max(room, 0.0) * nav // max(q.mid * op.MULTIPLIER, 1e-9)))
             if n <= 0:
+                if pnl > 0 and prob >= op.P_PROFIT_LONG:
+                    self._opt_reject("premium budget full / contract too large")
                 continue
+            rec = dict(time=str(self.time)[:16], kind=p["kind"], ticker=p["ticker"], right="C" if p["call"] else "P",
+                       strike=q.strike, dte=q.dte, spot=round(S, 2), mid=round(q.mid, 2), bs_value=round(bs, 2),
+                       iv=round(pick.iv, 3), rv=round(rv, 3), delta=round(pick.delta, 2), drift=round(p["mu"], 3),
+                       mc_p_profit=round(mc["p_profit"], 3), mc_exp_pnl=round(mc["exp_pnl"], 2),
+                       mc_p5=round(mc["p5"], 2), mc_p95=round(mc["p95"], 2), mc_total_loss=round(mc["p_total_loss"], 3),
+                       paths=mc["paths"], contracts=n, premium_nav=round(n * q.mid * op.MULTIPLIER / nav, 4),
+                       reason=p["reason"])
+            self.option_log = (self.option_log + [rec])[-200:]
+            self.debug(f"OPTION PICK {rec['kind']} {rec['ticker']} {q.strike:g}{rec['right']} {q.dte}d x{n} | spot "
+                       f"{S:.2f} mid {q.mid:.2f} BS@RV {bs:.2f} IV {pick.iv:.0%} RV {rv:.0%} Δ{pick.delta:.2f} | MC "
+                       f"{mc['paths']} paths: P(profit) {mc['p_profit']:.0%} E[P&L] {mc['exp_pnl']:+.2f} 5%/95% "
+                       f"{mc['p5']:+.2f}/{mc['p95']:+.2f} P(lose all) {mc['p_total_loss']:.0%} | premium "
+                       f"{rec['premium_nav']:.2%} NAV | {p['reason']}")
+            self._stat("Option last", f"{rec['kind']} {rec['ticker']} {q.strike:g}{rec['right']} {q.dte}d MC "
+                                      f"P {mc['p_profit']:.0%} E {mc['exp_pnl']:+.2f}")
+            self.plot("Options", "MC P(profit) %", mc["p_profit"] * 100)
+            self.plot("Options", "IV / RV", pick.iv / max(rv, 1e-6))
             half = (q.ask - q.bid) / 2
             limit = round(q.mid + hb.OPTION_LIMIT_FRACTION * half, 2)
             self.limit_order(q.symbol, n, limit, tag=f"{p['kind']} {p['ticker']} Δ{pick.delta:.2f} IV {pick.iv:.0%} "
@@ -176,6 +204,11 @@ class OptionsDeskMixin:   # plain holder of methods (not a base class — see ma
                                                                 entry_dte=q.dte, cost=0.0)
             done.append(p)
         self.option_plans = [p for p in self.option_plans if p not in done]
+
+    def _opt_reject(self, why):
+        self.opt_rejects[why] = self.opt_rejects.get(why, 0) + 1
+        top = sorted(self.opt_rejects.items(), key=lambda x: -x[1])[:2]
+        self._stat("Options", f"picked {len(self.option_log)} | rejected: " + "; ".join(f"{k[:22]} x{n}" for k, n in top))
 
     def _open_orders(self, sym):
         try:

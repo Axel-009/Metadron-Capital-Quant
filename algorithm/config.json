@@ -13,7 +13,8 @@
         "trade_equities": "true",
         "trade_options": "true",
         "data_resolution": "mixed",
-        "position_kelly": "2.0"
+        "position_kelly": "2.0",
+        "distressed_watch": ""
     },
     "project-name": "mayor of houston B"
 }

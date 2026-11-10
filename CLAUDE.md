@@ -289,6 +289,32 @@ beta-hedged to zero, and above it total market beta ≈ sleeves' ≈ 0.7 + ≤ 2
   the book. Thresholds above (short shares, 5% short cap, fill floor 0.50 / 4%, per-ETF cap) are first settings
   pending the owner's review against backtests.
 
+### Learning, themes, pairs, option evidence (owner, Nov 2026; code: `playbook.py`, `statarb.py`, `desk_research.py`, `desk_options.py`)
+
+- **Playbook** — what history says works in this kind of market. Market state from SPY each day: CRASH (≥ 20% below
+  the 1-year high) · BEAR (12-month return ≤ −5%) · BULL (≥ +10%) · FLAT. Every 21 days over all history to date
+  (sector indexes back to 1999, signals only, never held): the state and each sector's next 63-day return minus
+  SPY's. Learned mean excess by (state, sector), shrunk by n/(n+8) → tilt clip(excess / 0.25, ±0.30) added to the
+  sector scores for the current state; cyclical / secular / defensive averages reported. Walk-forward: only
+  outcomes already known on the date are used. ObjectStore `metadron/playbook.json`, status line *Playbook*.
+- **Theme leadership** — sub-sector leadership from every scored name's own 63-day return (median per sub-sector vs
+  the median sub-sector, scaled by the cross-group spread, −1 … +1) × 0.30 added to the sub-sector edge. Finds a
+  running theme (AI build-out, an oil squeeze) or a breaking one from the names, without ticker lists.
+- **Gates that learn** — each gate's value is scored against realised 21-day returns (rank IC, trailing 12 periods);
+  weights = 50% prior (40/20/20/20) + 50% IC-proportional, each 10–50%, Fundamentals ≥ 25%, after ≥ 3 periods.
+- **Cointegration pairs** — Engle-Granger inside each GICS sector on one year of daily closes: Dickey-Fuller ≤ −3.34
+  on the spread (and ≤ −2.5 on the first two thirds alone), half-life 3–40 days, return correlation ≥ 0.6; refit
+  every 21 days. Open at |z| ≥ 2 (short the rich leg, long the cheap one), close at |z| ≤ 0.5, stop at |z| ≥ 4;
+  1.5% NAV per leg (hedge-ratio weighted), ≤ 8 pairs; legs are added to the names' ordinary targets.
+- **Event flags without the agent** — next earnings ≈ last report's filing date (Morningstar, point in time) + 91
+  days: fills the EVENT sleeve (earnings ≤ 21 days), tail hedges and straddles in backtests; the agent's dates win.
+- **Options evidence** — every pick is valued by Black-Scholes at realised vol and run through a 4,000-path Monte
+  Carlo under the real-world drift (antithetic, fixed seed); the gate and Kelly size use the Monte Carlo
+  P(profit) and expected P&L. Logged as `OPTION PICK …`, kept in `state.json` (`option_picks`, `option_rejects`),
+  chart *Options*, status lines *Option last* / *Options*.
+- **Owner distressed list** — project parameter `distressed_watch` (comma-separated tickers): those names are
+  treated as recovery candidates in the distressed sleeve unless hard-blocked, and always shortlisted.
+
 ### Feed guard + live data (code: `algorithm/feed_guard.py`; owner threat model: a delayed, cut or altered feed)
 
 Phase 1: IBKR **paper** account for execution (separate IBKR username for QuantConnect); live prices from Tradier

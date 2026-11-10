@@ -112,6 +112,32 @@ def real_world(S: float, K: float, T: float, sigma: float, premium: float, mu: f
     return p, payoff - premium
 
 
+MC_PATHS = 4000
+
+
+def monte_carlo(S: float, K: float, T: float, sigma: float, premium: float, mu: float, call: bool = True,
+                n: int = MC_PATHS, seed: int = 7) -> dict:
+    """Monte Carlo of a LONG option held to expiry under the real-world drift μ (geometric Brownian motion,
+    antithetic paths, fixed seed so a decision is reproducible):
+        S_T = S · exp((μ − σ²/2)·T + σ·√T·Z)       P&L per share = payoff − premium
+    Returns P(profit), expected P&L, the 5% and 95% P&L and the probability of losing the whole premium.
+    Falls back to the closed form (real_world) when numpy is missing."""
+    if T <= 0 or sigma <= 0 or S <= 0 or premium <= 0:
+        return {"p_profit": 0.0, "exp_pnl": -premium, "p5": -premium, "p95": -premium, "p_total_loss": 1.0, "paths": 0}
+    try:
+        import numpy as np
+    except Exception:
+        p, e = real_world(S, K, T, sigma, premium, mu, call)
+        return {"p_profit": p, "exp_pnl": e, "p5": -premium, "p95": float("nan"), "p_total_loss": float("nan"), "paths": 0}
+    half = np.random.default_rng(seed).standard_normal(max(n // 2, 1))
+    z = np.concatenate([half, -half])
+    st = S * np.exp((mu - 0.5 * sigma * sigma) * T + sigma * math.sqrt(T) * z)
+    payoff = np.maximum(st - K, 0.0) if call else np.maximum(K - st, 0.0)
+    pnl = payoff - premium
+    return {"p_profit": float((pnl > 0).mean()), "exp_pnl": float(pnl.mean()), "p5": float(np.percentile(pnl, 5)),
+            "p95": float(np.percentile(pnl, 95)), "p_total_loss": float((payoff <= 0).mean()), "paths": int(len(z))}
+
+
 @dataclass
 class Quote:
     symbol: object

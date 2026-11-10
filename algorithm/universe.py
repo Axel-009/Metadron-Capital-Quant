@@ -125,8 +125,27 @@ def extract(f) -> Tuple[dict, List[str]]:
         d["sector"] = SECTOR_NAME.get(int(d["sector_code"]), "")
     except (TypeError, ValueError):
         d["sector"] = ""
+    d["file_date"] = _file_date(f)                         # last earnings report filed (→ next earnings estimate)
     missing = [k for k in REQUIRED if k not in d]
     return d, missing
+
+
+def _file_date(f) -> Optional[str]:
+    """ISO date of the latest earnings report's filing, from Morningstar (None when unavailable)."""
+    for path in ("earning_reports.file_date", "financial_statements.file_date"):
+        cur = f
+        for part in path.split("."):
+            cur = getattr(cur, part, None)
+            if cur is None:
+                break
+        for cand in (cur, getattr(cur, "three_months", None), getattr(cur, "value", None),
+                     getattr(cur, "twelve_months", None)):
+            if cand is not None and hasattr(cand, "year") and getattr(cand, "year", 0) > 1990:
+                try:
+                    return f"{cand.year:04d}-{cand.month:02d}-{cand.day:02d}"
+                except Exception:
+                    continue
+    return None
 
 
 # ------------------------------------------------------------------------------- state between days
