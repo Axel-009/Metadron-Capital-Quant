@@ -684,10 +684,8 @@ class MetadronCorridor(QCAlgorithm):
                 continue
             sec = self.securities[sym]
             price = sec.price
-            if price <= 0 or ((self.breaker_on or not self.feed_ok or t in self.feed.state.stale)
-                              and target > self._weight(sym)):
-                continue                                   # no new risk under the breaker, a feed halt, or in a
-                                                           # name whose own bars are stale
+            if price <= 0 or ((self.breaker_on or not self.feed_ok) and target > self._weight(sym)):
+                continue                                   # no new risk under the breaker or a feed halt
             delta_w = target - self._weight(sym)
             if abs(delta_w) < MIN_TRADE:
                 continue

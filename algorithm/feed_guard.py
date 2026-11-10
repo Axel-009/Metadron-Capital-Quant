@@ -4,9 +4,8 @@ Threat model (owner): someone who can delay or cut the live feed (or alter it at
 algorithm act on stale prices. Transport encryption already prevents silent in-transit edits; this module
 handles what encryption cannot:
 
-    1. STALENESS     SPY and the reference (SPX / MES) must be fresh during the session (≤ 5 minutes) or the book
-                     HALTS; a held single name older than 15 minutes blocks new entries in that name only
-                     (thin names skip minutes; daily-resolution backtests: multi-day gaps only)
+    1. STALENESS     every key price must be fresh during the session: SPY and MES ≤ 5 minutes, held single
+                     names ≤ 15 minutes (daily-resolution backtests: multi-day gaps only)
     2. CROSS-FEED    SPY (ETF) vs an independent reference: phase 1 the S&P 500 index (SPX, calculated by S&P
                      from all 500 constituents), phase 2 the MES future (CME, IBKR feed) — different sources. Their ratio is stable intraday; a deviation > BASIS_TOL from its
                      rolling median means one feed is delayed or wrong. Faking both consistently is hard.
@@ -47,7 +46,6 @@ class GuardState:
     ok: bool = True
     reasons: List[str] = field(default_factory=list)
     clean_streak: int = 0
-    stale: List[str] = field(default_factory=list)   # held names with old bars: no entries in THAT name only
 
 
 class FeedGuard:
@@ -63,19 +61,13 @@ class FeedGuard:
               spy: Optional[float], mes: Optional[float], ref_name: str = "MES") -> GuardState:
         """now_minutes / last_bar_minutes: minutes since any fixed epoch (e.g. timestamp() / 60).
         mes = the independent reference price (MES future in phase 2; the S&P 500 index SPX in phase 1)."""
-        reasons, stale = [], []
+        reasons = []
         for name, t in last_bar_minutes.items():
-            core = name in ("SPY", ref_name)
-            lag = DAILY_LAG_MIN if self.daily else (MAX_LAG_MIN if core else NAME_LAG_MIN)
-            old = t is None or now_minutes - t > lag
-            if old and not core:
-                stale.append(name)                         # a thin name that skipped minutes is not a feed attack:
-                continue                                   # it blocks entries in that name, never the whole book
+            lag = DAILY_LAG_MIN if self.daily else (MAX_LAG_MIN if name in ("SPY", ref_name) else NAME_LAG_MIN)
             if t is None:
                 reasons.append(f"{name}: no data")
-            elif old:
+            elif now_minutes - t > lag:
                 reasons.append(f"{name}: stale {now_minutes - t:.0f} min")
-        self.state.stale = stale
         if spy and mes and spy > 0 and mes > 0:
             r = mes / spy
             fresh = not reasons                            # staleness checks passed this time
