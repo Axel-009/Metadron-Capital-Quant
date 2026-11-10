@@ -202,11 +202,14 @@ def fit_shorts(decisions: List[Decision], budget: float) -> None:
         d.target = 0.0 if budget <= 0 else (d.target * budget / tot if tot > budget else d.target)
 
 
-def fill_book(decisions: List[Decision], pool: float, single_name_budget: float) -> float:
+def fill_book(decisions: List[Decision], pool: float, single_name_budget: float,
+              caps: Optional[Dict[str, float]] = None) -> float:
     """Deploy single-name budget the entry gate left unfilled (owner: 100% of NAV deployed, not cash).
 
     Best composite first among names that pass the fundamentals gate, have no macro veto, composite ≥ FILL_MIN
     and a tradable spread; ≤ FILL_MAX_NAME per name and ≤ SECTOR_MAX of the single-name budget per GICS sector.
+    HY / distressed / event names are filled only up to their OWN sleeve cap (caps); the rest of the pool goes to
+    investment-grade names, so a fully deployed book never over-weights the weaker credit sleeves.
     Returns the part that could not be placed (stays in cash)."""
     sec: Dict[str, float] = {}
     for d in decisions:
@@ -215,10 +218,16 @@ def fill_book(decisions: List[Decision], pool: float, single_name_budget: float)
     cands = [d for d in decisions if d.sleeve in EQUITY_SLEEVES and d.gates.get("FUNDAMENTALS", 0) > 0
              and d.gates.get("MACRO", 0) >= MACRO_VETO and d.composite >= FILL_MIN
              and not any(r.startswith("spread") for r in d.reasons)]
+    used: Dict[str, float] = {}
+    for d in decisions:
+        if d.target > 0:
+            used[d.sleeve] = used.get(d.sleeve, 0.0) + d.target
     for d in sorted(cands, key=lambda d: -d.composite):
         if pool <= 1e-4:
             break
         add = min(pool, FILL_MAX_NAME - d.target, SECTOR_MAX * single_name_budget - sec.get(d.sector, 0.0))
+        if caps is not None and d.sleeve != "IG":
+            add = min(add, caps.get(d.sleeve, 0.0) - used.get(d.sleeve, 0.0))
         if add < 0.002:
             continue
         if not d.approved:
@@ -226,6 +235,7 @@ def fill_book(decisions: List[Decision], pool: float, single_name_budget: float)
             d.reasons = [f"deployment fill: composite {d.composite:.2f} (best available, below the entry gate)"]
         d.target += add
         sec[d.sector] = sec.get(d.sector, 0.0) + add
+        used[d.sleeve] = used.get(d.sleeve, 0.0) + add
         pool -= add
     return max(pool, 0.0)
 

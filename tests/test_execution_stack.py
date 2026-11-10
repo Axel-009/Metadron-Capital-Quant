@@ -257,3 +257,16 @@ def test_short_position_protection_mirrors_the_long_side():
 def fg_short_stop(low):
     import feed_guard as fg
     return fg.short_stop(low)
+
+
+def test_fill_respects_the_weaker_credit_sleeves_own_caps():
+    def cand(t, sleeve, comp, sector):
+        d = dm.Decision(t, sleeve, {"FUNDAMENTALS": 0.6, "MACRO": 0.5}, comp)
+        d.sector, d.reasons = sector, ["P(profit) 51%"]
+        return d
+    ds = [cand(f"D{i}", "DISTRESSED", 0.60 - i * 0.01, f"S{i}") for i in range(5)] + \
+         [cand(f"I{i}", "IG", 0.55 - i * 0.01, f"T{i}") for i in range(5)]
+    dm.fill_book(ds, 0.30, 0.70, {"IG": 0.40, "DISTRESSED": 0.10, "HY": 0.10, "EVENT": 0.10})
+    dist = sum(d.target for d in ds if d.sleeve == "DISTRESSED")
+    assert dist == pytest.approx(0.10)                                       # stops at the distressed cap
+    assert sum(d.target for d in ds if d.sleeve == "IG") == pytest.approx(0.20)   # the rest goes to IG names

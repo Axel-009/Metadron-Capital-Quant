@@ -90,13 +90,16 @@ class ReportMixin:   # plain holder of methods (not a base class — see main.py
         self._stat("Targets", f"long {sum(live.values()):.0%} ({len(live)}) short {-sum(short.values()):.0%} "
                               f"({len(short)}) undeployed {getattr(self, 'undeployed', 0.0):.0%}")
         pnl, by_name = {}, {}
-        for kv in self.portfolio:                          # where the P&L comes from (realised + open)
+        for kind, name, p in self.realised.values():       # realised, every symbol ever traded
+            pnl[kind] = pnl.get(kind, 0.0) + p
+            by_name[name] = by_name.get(name, 0.0) + p
+        for kv in self.portfolio:                          # + open positions
             h = kv.value
             try:
-                p = float(h.net_profit) + float(h.unrealized_profit)
+                p = float(h.unrealized_profit)
             except Exception:
                 continue
-            if p == 0:
+            if p == 0 or not h.invested:
                 continue
             kind = "options" if h.type == SecurityType.OPTION else "stocks/ETFs"
             pnl[kind] = pnl.get(kind, 0.0) + p

@@ -126,6 +126,14 @@ class GuardMixin:   # plain holder of methods (not a base class — see main.py)
     def on_order_event(self, order_event):
         """A filled resting stop starts the same cooldown as a −10% close (no buy-back the next morning)."""
         try:
+            if order_event.status not in (OrderStatus.FILLED, OrderStatus.PARTIALLY_FILLED):
+                return
+            sym = order_event.symbol                        # realised P&L by symbol, kept after the security
+            opt = sym.security_type == SecurityType.OPTION  # (an expired option, a released name) is removed
+            und = getattr(sym, "underlying", None)
+            self.realised[str(sym)] = ("options" if opt else "stocks/ETFs",
+                                       (und.value + " opt") if opt and und is not None else sym.value,
+                                       float(self.portfolio[sym].net_profit))
             if order_event.status != OrderStatus.FILLED:
                 return
             m = self.stop_tickets.get(order_event.symbol)

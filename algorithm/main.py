@@ -124,6 +124,7 @@ class MetadronCorridor(QCAlgorithm):
                 self.debug(f"cannot add sector index {t}: {exc}")
         self.gate_card = al.Scorecard(models=tuple(dm.WEIGHTS))
         self.earn_dates, self.pairs, self.option_log, self.opt_rejects = {}, [], [], {}
+        self.realised = {}                # symbol → (kind, name, realised P&L): survives the security's removal
         self.distressed_watch = self._owner_watch("distressed_watch")
         try:
             self.vix = self.add_index("VIX", Resolution.DAILY).symbol
@@ -662,10 +663,10 @@ class MetadronCorridor(QCAlgorithm):
         caps, share = getattr(self, "caps", None) or dm.sleeve_caps(), self.short_share
         single = sum(caps.get(k, 0.0) for k in dm.EQUITY_SLEEVES)
         longs = [d for d in out.values() if d.sleeve != "SHORT"]
-        dm.fit_sleeves(longs, {k: v * (1 - share) if k in dm.EQUITY_SLEEVES else v for k, v in caps.items()},
-                       self.sector_budget or None)
+        lcaps = {k: v * (1 - share) if k in dm.EQUITY_SLEEVES else v for k, v in caps.items()}
+        dm.fit_sleeves(longs, lcaps, self.sector_budget or None)
         pool = single * (1 - share) + self.etf_shortfall - sum(d.target for d in longs)
-        self.undeployed = dm.fill_book(longs, pool, single)     # owner: deploy the book, not cash
+        self.undeployed = dm.fill_book(longs, pool, single, lcaps)   # owner: deploy the book, not cash
         dm.fit_shorts([d for d in out.values() if d.sleeve == "SHORT"], single * share)
         return out
 
