@@ -25,18 +25,25 @@ def _sym(o: dict) -> str:
     return str(s.get("value") or s.get("Value") or s.get("id")) if isinstance(s, dict) else str(s)
 
 
-def orders(pid: int, bid: str, limit: int = 2000) -> list:
-    out, start = [], 0
+def orders(pid: int, bid: str, limit: int = 3000) -> list:
+    """QuantConnect serves at most 100 orders per call: [start, end) with end − start ≤ 100 (inclusive on some
+    versions, so 99-wide pages are requested)."""
+    out, start, seen = [], 0, set()
     while start < limit:
         res = qc_api.post("backtests/orders/read", {"projectId": pid, "backtestId": bid, "start": start,
-                                                    "end": start + 100}) or {}
+                                                    "end": start + 99}) or {}
         page = res.get("orders") or []
+        if isinstance(page, dict):
+            page = list(page.values())
         if start == 0 and not page:
-            print("  (orders endpoint keys:", sorted(res.keys()), "length:", res.get("length"), "errors:", res.get("errors"), ")")
-        out += page
-        if len(page) < 100:
+            print("  (orders endpoint keys:", sorted(res.keys()), "length:", res.get("length"), "errors:",
+                  res.get("errors"), ")")
+        new = [o for o in page if o.get("id") not in seen]
+        seen |= {o.get("id") for o in new}
+        out += new
+        if len(page) < 99:
             break
-        start += 100
+        start += 99
     return out
 
 
@@ -130,9 +137,18 @@ def report(pid: int, bid: str = "") -> int:
         types = collections.Counter(str(o.get("type")) for o in od)
         print("  by tag:", dict(kinds.most_common(12)))
         print("  by status code:", dict(status), "| by type code:", dict(types))
-        for o in od[:8] + od[-8:]:
-            print(f"  {str(o.get('createdTime') or o.get('time'))[:19]} {_sym(o):<8} qty={o.get('quantity')} "
-                  f"px={o.get('price')} status={o.get('status')} | {str(o.get('tag'))[:110]}")
+        val = lambda o: abs(float(o.get("value") or 0) or float(o.get("quantity") or 0) * float(o.get("price") or 0))
+        print("  order keys:", sorted(od[0].keys()))
+        print("  traded value by tag:", {k: round(sum(val(o) for o in od if (str(o.get("tag") or "").split(" ")[0] or "(no tag)") == k))
+                                         for k, _ in kinds.most_common(12)})
+        print("  LARGEST 25 by value:")
+        for o in sorted(od, key=lambda o: -val(o))[:25]:
+            print(f"  {str(o.get('createdTime') or o.get('time'))[:19]} {_sym(o):<22} qty={o.get('quantity')} "
+                  f"px={o.get('price')} val={val(o):,.0f} st={o.get('status')} | {str(o.get('tag'))[:120]}")
+        print("  FIRST 12 / LAST 6:")
+        for o in od[:12] + od[-6:]:
+            print(f"  {str(o.get('createdTime') or o.get('time'))[:19]} {_sym(o):<22} qty={o.get('quantity')} "
+                  f"px={o.get('price')} st={o.get('status')} | {str(o.get('tag'))[:120]}")
     for chart in ("Strategy Equity", "Decisions", "Feed", "Data health", "Leverage", "Regime", "Rm vs corridor", "Risk"):
         chart_tail(pid, bid, chart)
     lg = logs(pid, bid)
