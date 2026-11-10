@@ -31,6 +31,8 @@ def orders(pid: int, bid: str, limit: int = 2000) -> list:
         res = qc_api.post("backtests/orders/read", {"projectId": pid, "backtestId": bid, "start": start,
                                                     "end": start + 100}) or {}
         page = res.get("orders") or []
+        if start == 0 and not page:
+            print("  (orders endpoint keys:", sorted(res.keys()), "length:", res.get("length"), "errors:", res.get("errors"), ")")
         out += page
         if len(page) < 100:
             break
@@ -102,6 +104,24 @@ def report(pid: int, bid: str = "") -> int:
         st = bt.get(name) or {}
         if st:
             print(f"{name}: " + " | ".join(f"{k}={v}" for k, v in st.items()))
+    print("backtest keys:", sorted(bt.keys()))
+    tp = bt.get("totalPerformance") or {}
+    print("totalPerformance keys:", sorted(tp.keys()) if isinstance(tp, dict) else type(tp))
+    trades = (tp.get("closedTrades") or []) if isinstance(tp, dict) else []
+    print(f"CLOSED TRADES: {len(trades)}")
+    def _pl(t):
+        try:
+            return float(t.get("profitLoss") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+    for t in sorted(trades, key=lambda t: -abs(_pl(t)))[:25]:
+        sy = t.get("symbol") or (t.get("symbols") or [{}])[0]
+        name = (sy.get("value") or sy.get("id")) if isinstance(sy, dict) else sy
+        print(f"  {str(name):<24} qty={t.get('quantity')} {str(t.get('entryTime'))[:16]} @ {t.get('entryPrice')} → "
+              f"{str(t.get('exitTime'))[:16]} @ {t.get('exitPrice')}  P&L {_pl(t):,.0f}")
+    if trades:
+        print(f"  sum P&L {sum(_pl(t) for t in trades):,.0f}; winners {sum(1 for t in trades if _pl(t) > 0)}, "
+              f"losers {sum(1 for t in trades if _pl(t) < 0)}")
     od = orders(pid, bid)
     print(f"ORDERS read: {len(od)}")
     if od:
