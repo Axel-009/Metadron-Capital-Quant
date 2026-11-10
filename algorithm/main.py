@@ -684,8 +684,10 @@ class MetadronCorridor(QCAlgorithm):
                 continue
             sec = self.securities[sym]
             price = sec.price
-            if price <= 0 or ((self.breaker_on or not self.feed_ok) and target > self._weight(sym)):
-                continue                                   # no new risk under the breaker or a feed halt
+            if price <= 0 or ((self.breaker_on or not self.feed_ok or t in self.feed.state.stale)
+                              and target > self._weight(sym)):
+                continue                                   # no new risk under the breaker, a feed halt, or in a
+                                                           # name whose own bars are stale
             delta_w = target - self._weight(sym)
             if abs(delta_w) < MIN_TRADE:
                 continue
@@ -858,6 +860,23 @@ class MetadronCorridor(QCAlgorithm):
         self._stat("Decisions", f"{len(app)} approved of {len(ds)} (shortlist {len(self.selected)})")
         self._stat("Rejected for", ", ".join(f"{k} x{n}" for k, n in sorted(why.items(), key=lambda x: -x[1])[:3]) or "-")
         self._stat("Targets", f"{len(live)} names, {sum(live.values()):.0%} of NAV")
+        pnl, by_name = {}, {}
+        for kv in self.portfolio:                          # where the P&L comes from (realised + open)
+            h = kv.value
+            try:
+                p = float(h.net_profit) + float(h.unrealized_profit)
+            except Exception:
+                continue
+            if p == 0:
+                continue
+            kind = "options" if h.type == SecurityType.OPTION else "stocks/ETFs"
+            pnl[kind] = pnl.get(kind, 0.0) + p
+            und = getattr(kv.key, "underlying", None)
+            name = (und.value + " opt") if h.type == SecurityType.OPTION and und is not None else kv.key.value
+            by_name[name] = by_name.get(name, 0.0) + p
+        top = sorted(by_name.items(), key=lambda x: -abs(x[1]))[:3]
+        self._stat("PnL by type", ", ".join(f"{k} {v:+,.0f}" for k, v in pnl.items()) or "-")
+        self._stat("PnL top 3", ", ".join(f"{k} {v:+,.0f}" for k, v in top) or "-")
         pos = {}
         for kv in self.portfolio:
             sym, h = kv.key, kv.value

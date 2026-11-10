@@ -170,3 +170,14 @@ def test_last_bar_age_uses_the_exchange_clock_not_the_algorithm_clock():
     a._minutes = G._minutes.__get__(a)
     last = G._last_bar.__get__(a)("SPX")
     assert abs((a._minutes(ny) - last) - 1.0) < 1e-6          # 1 minute old, not 61
+
+
+def test_stale_held_name_blocks_that_name_not_the_book():
+    g = fg.FeedGuard()
+    now = 10_000.0
+    st = g.check(now, {"SPY": now - 1, "SPX": now - 1, "DIVO": now - 177}, 400.0, 4000.0, "SPX")
+    assert st.ok and st.stale == ["DIVO"]                          # thin ETF skipped minutes: no halt
+    st = g.check(now + 30, {"SPY": now + 29, "SPX": now + 29, "DIVO": now + 29}, 400.0, 4000.0, "SPX")
+    assert st.ok and st.stale == []
+    st = g.check(now + 60, {"SPY": now + 20, "SPX": now + 59}, 400.0, 4000.0, "SPX")
+    assert not st.ok                                               # SPY itself stale → halt
