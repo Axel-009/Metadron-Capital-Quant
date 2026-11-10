@@ -1,0 +1,19 @@
+# Read-only: checks that the IBKR Flex token + query id return the account statement.
+name: ibkr-flex-test
+on:
+  push:
+    branches: [main]
+    paths: [".github/ibkr-trigger", "agents/ibkr_test.py"]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: python agents/ibkr_test.py
+        env:
+          IBKR_FLEX_TOKEN: ${{ secrets.IBKR_FLEX_TOKEN }}
+          IBKR_FLEX_QUERY_ID: ${{ secrets.IBKR_FLEX_QUERY_ID }}
